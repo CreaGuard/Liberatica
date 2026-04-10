@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Optimized Primary Title -->
-  <title id="dynamic-title">Liberatica – Free Digital Library | Philosophy, Art & Fiction Books</title>
+  <!-- Optimized Primary Title (100% Keyword Match for SEO) -->
+  <title id="dynamic-title">Liberatica – Free Digital Library | Philosophy, Filmmaking, Design, Business & Request Books</title>
   
-  <!-- Optimized SEO Meta Tags -->
-  <meta name="description" content="Liberatica is a free digital library offering curated books, ebooks, and PDFs in philosophy, filmmaking, art, music, and fiction. Read online or download EPUBs." id="dynamic-description">
-  <meta name="keywords" content="Liberatica, free digital library, download free books, philosophy ebooks, filmmaking books, art ebooks, read online, epub download, free pdf books">
+  <!-- Optimized SEO Meta Tags (100% Keyword Match for SEO) -->
+  <meta name="description" content="Liberatica is a free digital library offering curated books and PDFs in philosophy, filmmaking, design, and business. Request a book, read online, or download EPUBs." id="dynamic-description">
+  <meta name="keywords" content="Liberatica, free digital library, download free books, philosophy ebooks, filmmaking books, design books, business books, request books, read online, epub download">
   <meta name="author" content="Liberatica Team">
   <meta name="robots" content="index, follow">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:title" content="Liberatica – Free Digital Library" id="og-title">
-  <meta property="og:description" content="Curated books in philosophy, art, filmmaking, and storytelling. Read online or download in multiple formats." id="og-description">
+  <meta property="og:description" content="Curated books in philosophy, art, filmmaking, design, and business. Read online or download in multiple formats." id="og-description">
   <meta property="og:image" content="https://liberatica.netlify.app/apple-touch-icon.png" id="og-image">
   <meta property="og:url" content="https://liberatica.netlify.app/" id="og-url">
   <meta property="og:type" content="website">
@@ -23,7 +23,7 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" id="twitter-card">
   <meta name="twitter:title" content="Liberatica – Free Digital Library" id="twitter-title">
-  <meta name="twitter:description" content="Curated books in philosophy, art, filmmaking, and storytelling. Read online or download in multiple formats." id="twitter-description">
+  <meta name="twitter:description" content="Curated books in philosophy, art, filmmaking, design, and business. Read online or download in multiple formats." id="twitter-description">
   <meta name="twitter:image" content="https://liberatica.netlify.app/apple-touch-icon.png" id="twitter-image">
 
   <!-- Canonical -->
@@ -39,7 +39,7 @@
     "@type": "Library",
     "name": "Liberatica",
     "url": "https://liberatica.netlify.app/",
-    "description": "A free digital library featuring curated books and texts in philosophy, fiction, art, and filmmaking.",
+    "description": "A free digital library featuring curated books and texts in philosophy, fiction, design, business, and filmmaking.",
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://liberatica.netlify.app/?q={search_term_string}",
@@ -55,12 +55,12 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Great+Vibes&family=Inter:wght@400;500&family=Manrope:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Great+Vibes&family=Inter:wght@400;500&family=Manrope:wght@400;500&display=swap"></noscript>
   
-  <!-- Stricter Favicon Implementation -->
+  <!-- Stricter W3C Standard Favicon Implementation for SEO Tools -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="/site.webmanifest">
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   
   <style>
     :root {
@@ -148,7 +148,11 @@
       transform: translateY(-20px);
       animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-    .header p { font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-top: 16px; color: var(--accent-color); opacity: 0.9; }
+    .header .site-subtitle { 
+      font-weight: 400; font-family: 'Manrope', sans-serif;
+      font-size: 14px; letter-spacing: 3px; text-transform: uppercase; 
+      margin-top: 16px; margin-bottom: 0; color: var(--accent-color); opacity: 0.9; 
+    }
     
     /* --- Featured Book Section --- */
     #featured-book {
@@ -527,7 +531,7 @@
     @media (max-width: 768px) {
         body { padding: 24px 16px; }
         .header h1 { font-size: 32px; letter-spacing: 8px; margin-right: -8px; }
-        .header p { font-size: 13px; letter-spacing: 3px; }
+        .header .site-subtitle { font-size: 13px; letter-spacing: 3px; }
         #featured-book { display: none !important; }
         .controls { flex-wrap: nowrap; gap: 12px; }
         .search-trigger { min-width: 50px; padding: 0 16px; }
@@ -594,7 +598,7 @@
   <div class="container" style="display: none;">
     <div class="header">
       <h1>LIBERATICA</h1>
-      <p>Free Digital Library of Fiction, Philosophy & Art</p>
+      <h2 class="site-subtitle">Free Digital Library of Philosophy, Filmmaking, Design & Business</h2>
     </div>
 
     <div id="featured-book"></div>
@@ -737,7 +741,7 @@
 
         // --- Meta Tag Management ---
         const setDefaultMeta = () => {
-            document.getElementById('dynamic-title').textContent = "Liberatica – Free Digital Library | Philosophy, Art & Fiction Books";
+            document.getElementById('dynamic-title').textContent = "Liberatica – Free Digital Library | Philosophy, Filmmaking, Design, Business & Request Books";
         };
         const setBookMeta = (book) => {
             document.getElementById('dynamic-title').textContent = `${book.Title} by ${book.Author} | Liberatica`;
