@@ -198,9 +198,11 @@
     .palette-result-item .title { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 4px; }
     .palette-result-item .author { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-color); opacity: 0.6; }
 
-    .palette-detail-view { padding: 32px; display: flex; align-items: flex-start; gap: 32px; }
+    /* Palette Layout Overhaul for Desktop Full-Width Spanning */
+    .palette-detail-view { padding: 32px 32px 16px 32px; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; }
+    .palette-detail-top { display: flex; align-items: flex-start; gap: 32px; width: 100%; }
     .palette-detail-cover { width: 160px; flex-shrink: 0; border-radius: 12px; box-shadow: 0 12px 30px var(--shadow-color); }
-    .palette-detail-info { text-align: left; position: relative; width: 100%; }
+    .palette-detail-info { text-align: left; position: relative; width: 100%; flex: 1; }
     .palette-detail-info h2 { font-family: 'DM Serif Display', serif; margin: 0; font-size: 32px; line-height: 1.2; }
     .palette-detail-info p { color: var(--text-color); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.6; margin: 8px 0 24px; }
     
@@ -213,6 +215,8 @@
     .palette-detail-info .share-btn-main { background: var(--modal-input-bg); color: var(--text-color); border: 1px solid var(--modal-input-border); }
     .palette-detail-info .share-btn-main:hover { background: var(--text-color); color: var(--card-bg); }
     
+    /* Isolated action wrapper to prevent popup from expanding scroll height */
+    .actions-wrapper { position: relative; width: 100%; }
     .share-popup { position: absolute; top: calc(100% + 8px); right: 0px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 12px; display: flex; gap: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10; }
     .share-popup.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
     .share-btn { background: var(--modal-input-bg); border: 1px solid var(--modal-input-border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s; }
@@ -224,7 +228,7 @@
     .palette-detail-info .ai-teaser-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
     .palette-detail-info .ai-teaser-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
-    .palette-teaser-container { font-family: 'DM Serif Display', serif; font-size: 16px; line-height: 1.6; color: var(--text-color); opacity: 0.9; margin-top: 24px; padding: 20px; border-radius: 16px; background: var(--shimmer-bg); border: 1px solid var(--card-border); white-space: pre-wrap; max-height: 220px; overflow-y: auto; }
+    .palette-teaser-container { font-family: 'DM Serif Display', serif; font-size: 16px; line-height: 1.6; color: var(--text-color); opacity: 0.9; margin-top: 24px; padding: 20px; border-radius: 16px; background: var(--shimmer-bg); border: 1px solid var(--card-border); white-space: pre-wrap; max-height: 220px; overflow-y: auto; width: 100%; box-sizing: border-box; }
     .palette-teaser-container::-webkit-scrollbar { width: 6px; }
     .palette-teaser-container::-webkit-scrollbar-track { background: transparent; }
     .palette-teaser-container::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 10px; }
@@ -237,11 +241,11 @@
     .loading-bar { height: 12px; border-radius: 6px; background-color: var(--shimmer-bg); background: var(--shimmer-gradient); background-size: 1000px 100%; animation: shimmer-load 2s infinite linear; }
     .loading-bar.short { width: 60%; } .loading-bar.medium { width: 80%; } .loading-bar.long { width: 100%; }
 
-    .related-books { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--modal-input-border); width: 100%; }
+    .related-books { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--modal-input-border); width: 100%; box-sizing: border-box; }
     .related-books h4 { font-family: 'Manrope', sans-serif; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px; font-size: 12px; color: var(--text-color); opacity: 0.5; text-align: left; }
     .related-books-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
     .related-book { text-align: center; cursor: pointer; }
-    .related-book img { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s; }
+    .related-book img { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; margin-bottom: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s; }
     .related-book:hover img { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(200, 169, 126, 0.3); }
     .related-book span { display: none; }
 
@@ -325,7 +329,9 @@
         .book-card.is-loading { background: transparent; box-shadow: none; }
         .book-card.is-loading .image-placeholder { height: auto; aspect-ratio: 2/3; border-radius: 8px; background-color: var(--category-border); border: none;}
         .palette-overlay { padding-top: 2vh; } .command-palette { max-height: 90vh; border-radius: 20px; }
-        .palette-detail-view { flex-direction: column; align-items: center; text-align: center; padding: 24px; }
+        .palette-detail-view { padding: 24px 20px 12px 20px; }
+        .palette-detail-top { flex-direction: column; align-items: center; text-align: center; gap: 24px; }
+        .palette-detail-info { text-align: center; }
         .palette-detail-info h2 { font-size: 24px; }
         .palette-teaser-container { font-size: 15px; padding: 16px; max-height: 180px; margin-top: 16px; }
         .related-books-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -654,25 +660,29 @@
             const sUrl = window.location.href, sTxt = `Check out ${b.Title} by ${b.Author} on Liberatica`;
             
             paletteDetailView.innerHTML = `
-                <img src="${b.Cover_url}" class="palette-detail-cover">
-                <div class="palette-detail-info"><h2>${b.Title}</h2><p>by ${b.Author}</p>
-                    <div class="buttons">
-                        <a href="${b.pdf_url.replace("/view?usp=sharing", "/preview")}" target="_blank" class="read" aria-label="Read Online" title="Read Online">Read</a>
-                        <a href="${b.epub_url}" download class="download" aria-label="Download EPUB" title="Download EPUB">Download</a>
-                        <button class="share-btn-main" aria-label="Share">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><use href="#icon-share"/></svg> Share
-                        </button>
-                        <button class="ai-teaser-btn">Teaser</button>
+                <div class="palette-detail-top">
+                    <img src="${b.Cover_url}" class="palette-detail-cover">
+                    <div class="palette-detail-info"><h2>${b.Title}</h2><p>by ${b.Author}</p>
+                        <div class="actions-wrapper">
+                            <div class="buttons">
+                                <a href="${b.pdf_url.replace("/view?usp=sharing", "/preview")}" target="_blank" class="read" aria-label="Read Online" title="Read Online">Read</a>
+                                <a href="${b.epub_url}" download class="download" aria-label="Download EPUB" title="Download EPUB">Download</a>
+                                <button class="share-btn-main" aria-label="Share">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><use href="#icon-share"/></svg> Share
+                                </button>
+                                <button class="ai-teaser-btn">Teaser</button>
+                            </div>
+                            <div class="share-popup">
+                                <button class="share-btn" data-p="twitter" title="Share on X" aria-label="Share on X"><svg viewBox="0 0 24 24"><use href="#icon-twitter"/></svg></button>
+                                <button class="share-btn" data-p="facebook" title="Share on Facebook" aria-label="Share on Facebook"><svg viewBox="0 0 24 24"><use href="#icon-facebook"/></svg></button>
+                                <button class="share-btn" data-p="whatsapp" title="Share on WhatsApp" aria-label="Share on WhatsApp"><svg viewBox="0 0 24 24"><use href="#icon-whatsapp"/></svg></button>
+                                <button class="share-btn" data-p="copy" title="Copy Link" aria-label="Copy Link"><svg viewBox="0 0 24 24"><use href="#icon-copy"/></svg></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="share-popup">
-                        <button class="share-btn" data-p="twitter" title="Share on X" aria-label="Share on X"><svg viewBox="0 0 24 24"><use href="#icon-twitter"/></svg></button>
-                        <button class="share-btn" data-p="facebook" title="Share on Facebook" aria-label="Share on Facebook"><svg viewBox="0 0 24 24"><use href="#icon-facebook"/></svg></button>
-                        <button class="share-btn" data-p="whatsapp" title="Share on WhatsApp" aria-label="Share on WhatsApp"><svg viewBox="0 0 24 24"><use href="#icon-whatsapp"/></svg></button>
-                        <button class="share-btn" data-p="copy" title="Copy Link" aria-label="Copy Link"><svg viewBox="0 0 24 24"><use href="#icon-copy"/></svg></button>
-                    </div>
-                    <div class="palette-teaser-container" style="display:none;"></div>
-                    <div class="related-books" id="related-books-container"></div>
-                </div>`;
+                </div>
+                <div class="palette-teaser-container" style="display:none; width: 100%; box-sizing: border-box;"></div>
+                <div class="related-books" id="related-books-container" style="width: 100%; box-sizing: border-box;"></div>`;
             
             // Share Logic
             const popup = paletteDetailView.querySelector('.share-popup');
