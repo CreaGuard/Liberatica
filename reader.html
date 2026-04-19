@@ -1188,41 +1188,32 @@
 
           const viewer = document.getElementById('viewer');
 
-          // reset scroll completely
           if (viewer) {
-              viewer.scrollTop = 0;
               viewer.style.scrollBehavior = "auto";
           }
 
-          // STEP 1: extract section (chapter)
-          let spineIndex;
+          /* OUT OF THE BOX SOLLUTION: The "Automated Triple-Tap" Engine
+           * Mobile browsers delay layout reflows in iframes. If tapping 3 times 
+           * works manually to fix the position, we automate those exactly!
+           */
           try {
-              const parsed = new ePub.CFI(targetCfi);
-              spineIndex = parsed.spinePos;
-          } catch(e) {
-              try {
-                  const parsed = ePub.CFI.parse(targetCfi);
-                  spineIndex = parsed.spinePos;
-              } catch(e2) {}
-          }
-
-          // STEP 2: load chapter first
-          if (spineIndex !== undefined) {
-              await rendition.display(spineIndex);
-          }
-
-          // STEP 3: wait for layout
-          setTimeout(() => {
-
-            // STEP 4: go to exact position
-            rendition.display(targetCfi);
-
-            // STEP 5: restore smooth scroll AFTER navigation
-            setTimeout(() => {
+              // TAP 1: Inject the chapter iframe into the DOM
+              await rendition.display(targetCfi);
+              
+              // TAP 2: Wait 120ms for CSS to apply, then recalculate scroll
+              setTimeout(async () => {
+                  await rendition.display(targetCfi);
+                  
+                  // TAP 3: Wait 150ms for images/fonts to expand, make the final perfect snap
+                  setTimeout(() => {
+                      rendition.display(targetCfi);
+                      if (viewer) viewer.style.scrollBehavior = "smooth";
+                  }, 150);
+              }, 120);
+          } catch (e) {
+              console.warn("Navigation Error:", e);
               if (viewer) viewer.style.scrollBehavior = "smooth";
-            }, 100);
-
-          }, 100);
+          }
         };
 
         book.loaded.navigation.then(toc => {
