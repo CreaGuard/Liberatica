@@ -491,13 +491,12 @@
         }
     }
 
-    // ===== PDF LOADER (NEW) =====
+    // ===== PDF LOADER =====
     function loadPDF(url) {
         const viewer = document.getElementById("viewer");
         const msgElem = document.getElementById("message");
         if (msgElem) msgElem.style.display = "none";
 
-        // Fix Google Drive links for direct iframe preview
         if (url.includes("drive.google.com") && url.includes("/view")) {
             url = url.split("/view")[0] + "/preview";
         }
@@ -510,9 +509,6 @@
             ></iframe>
         `;
 
-        console.log("PDF loaded dynamically");
-
-        // 🚫 Disable EPUB-only visual features
         const tocToggle = document.getElementById('toc-toggle');
         const ttsToggle = document.getElementById('tts-toggle');
         const voiceSelect = document.getElementById('voiceSelect');
@@ -554,7 +550,7 @@
         // KINDLE STYLING
         rendition.themes.default({
           "html, body": { 
-            "-webkit-touch-callout": "none !important", 
+            "-webkit-touch-callout": "default !important", 
             "padding": "0 12px !important", 
             "line-height": "1.65 !important", 
             "box-sizing": "border-box !important", 
@@ -597,7 +593,10 @@
           ".epubjs-hl": { 
             "background-color": "rgba(212, 175, 55, 0.35) !important", 
             "border-radius": "2px", 
-            "cursor": "pointer" 
+            "cursor": "pointer",
+            "display": "inline",
+            "box-decoration-break": "clone",
+            "-webkit-box-decoration-break": "clone"
           },
           ".temp-selection-hl": {
             "background-color": "rgba(212, 175, 55, 0.5) !important",
@@ -748,6 +747,7 @@
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
+            // Phrase highlight (FALLBACK) - Does NOT attempt auto-scrolling
             const doPhraseHighlight = () => {
                 const charIndex = ttsAbsoluteStartOffset + ttsCumulativeLength;
                 let startTrim = 0;
@@ -758,19 +758,12 @@
                 
                 if (targetRange && currentDoc) {
                     applyTTSHighlight(currentDoc, targetRange);
-                    requestAnimationFrame(() => {
-                        try {
-                            const el = targetRange.startContainer.nodeType === Node.TEXT_NODE 
-                                ? targetRange.startContainer.parentElement 
-                                : targetRange.startContainer;
-                            if (el && !isMobile) {
-                                el.scrollIntoView({ behavior: "smooth", block: "center" });
-                            }
-                        } catch (e) {}
-                    });
+                    // DELIBERATELY REMOVED: Auto-scroll
+                    // Mass-chunk highlighting confuses scrollIntoView. Left to manual user scroll.
                 }
             };
 
+            // Only attempt precise word-tracking + auto-scroll if the voice supports it 
             if (!isMobile && 'onboundary' in utterance) {
                 let boundaryFired = false;
 
@@ -786,6 +779,8 @@
                         
                         if (targetRange && currentDoc) {
                             applyTTSHighlight(currentDoc, targetRange);
+                            
+                            // Precise auto-scroll is safe here because we are tracking single words
                             requestAnimationFrame(() => {
                                 try {
                                     const el = targetRange.startContainer.nodeType === Node.TEXT_NODE 
@@ -800,6 +795,7 @@
                     }
                 };
 
+                // Fallback for tricky desktop voices that claim to support boundaries but don't (e.g. UK Male)
                 setTimeout(() => {
                     if (!boundaryFired && ttsActive) {
                         doPhraseHighlight();
@@ -1004,6 +1000,7 @@
 
         rendition.on("selected", (cfiRange, contents) => {
           const sel = contents.window.getSelection();
+          if (!sel || sel.rangeCount === 0) return;
           if (sel.isTTSHighlight) return;
           
           currentSelectionCfi = cfiRange;
@@ -1018,41 +1015,40 @@
           const rect = sel.getRangeAt(0).getBoundingClientRect();
           const iframeRect = contents.window.frameElement.getBoundingClientRect();
           
-          sel.removeAllRanges();
-          rendition.annotations.add("highlight", cfiRange, {}, null, "temp-selection-hl");
-          
           if (selectionMenu) {
-              selectionMenu.style.display = "flex";
-              let left = iframeRect.left + rect.left + (rect.width / 2) - (selectionMenu.offsetWidth / 2);
-              let top = iframeRect.top + rect.top - selectionMenu.offsetHeight - 15;
-              if (top < 65) top = iframeRect.top + rect.bottom + 15; 
-              selectionMenu.style.left = `${Math.max(10, Math.min(left, window.innerWidth - selectionMenu.offsetWidth - 10))}px`;
-              selectionMenu.style.top = `${top}px`;
+              setTimeout(() => {
+                  selectionMenu.style.display = "flex";
+                  let left = iframeRect.left + rect.left + (rect.width / 2) - (selectionMenu.offsetWidth / 2);
+                  let top = iframeRect.top + rect.top - selectionMenu.offsetHeight - 15;
+                  if (top < 65) top = iframeRect.top + rect.bottom + 15; 
+                  selectionMenu.style.left = `${Math.max(10, Math.min(left, window.innerWidth - selectionMenu.offsetWidth - 10))}px`;
+                  selectionMenu.style.top = `${top}px`;
+              }, 150);
           }
           
           const hideCustomMenu = (e) => { 
               if (e && e.target && e.target.closest('#selection-menu')) return;
               
               if (selectionMenu) selectionMenu.style.display = "none"; 
-              rendition.annotations.remove(currentSelectionCfi, "highlight");
               
               contents.window.removeEventListener("mousedown", hideCustomMenu); 
-              contents.window.removeEventListener("touchstart", hideCustomMenu);
+              contents.window.removeEventListener("touchend", hideCustomMenu);
               document.removeEventListener("mousedown", hideCustomMenu);
-              document.removeEventListener("touchstart", hideCustomMenu);
+              document.removeEventListener("touchend", hideCustomMenu);
               window.hideSelectionMenu = null;
           };
           
           setTimeout(() => {
               contents.window.addEventListener("mousedown", hideCustomMenu);
-              contents.window.addEventListener("touchstart", hideCustomMenu, {passive: true});
+              contents.window.addEventListener("touchend", hideCustomMenu, {passive: true});
               document.addEventListener("mousedown", hideCustomMenu);
-              document.addEventListener("touchstart", hideCustomMenu, {passive: true});
+              document.addEventListener("touchend", hideCustomMenu, {passive: true});
           }, 100);
           
           window.hideSelectionMenu = hideCustomMenu;
         });
 
+        // INTENTIONAL READING BUTTON
         readBtn?.addEventListener('click', () => {
             window.speechSynthesis.cancel();
             const unlock = new SpeechSynthesisUtterance('');
@@ -1070,19 +1066,31 @@
                         startTTSFromNode(activeSelectionContents, node, currentSelectionRange.startOffset || 0);
                     }
                     if (window.hideSelectionMenu) window.hideSelectionMenu();
-                    activeSelectionContents.window.getSelection().removeAllRanges();
+                    
+                    setTimeout(() => {
+                        if (activeSelectionContents) {
+                            activeSelectionContents.window.getSelection().removeAllRanges();
+                        }
+                    }, 150);
                 }
             }, 50);
         });
 
         highlightBtn?.addEventListener('click', () => {
           if (currentSelectionCfi) {
-            rendition.annotations.remove(currentSelectionCfi, "highlight");
             rendition.annotations.add("highlight", currentSelectionCfi, {}, (e) => showConfirm(currentSelectionCfi), "epubjs-hl");
             
-            storedHighlights.push(currentSelectionCfi);
+            if (!storedHighlights.includes(currentSelectionCfi)) {
+                storedHighlights.push(currentSelectionCfi);
+            }
             localStorage.setItem(highlightsKey, JSON.stringify(storedHighlights));
             if (window.hideSelectionMenu) window.hideSelectionMenu();
+
+            setTimeout(() => {
+                if (activeSelectionContents) {
+                    activeSelectionContents.window.getSelection().removeAllRanges();
+                }
+            }, 150);
           }
         });
 
