@@ -301,9 +301,10 @@
       overflow-y: auto; 
       overflow-anchor: none; 
       -webkit-overflow-scrolling: touch;
+      transition: opacity 0.2s ease-in-out; /* Smooth fade in/out for Kindle-style navigation */
     }
 
-    /* Progress Container - Sleek & Thin */
+    /* Progress Container - Solid Redesign */
     #progress-container {
       position: fixed;
       bottom: 0;
@@ -312,15 +313,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 24px 10px 24px; 
+      padding: 8px 24px; 
       font-size: 10px; 
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--text);
-      opacity: 0.6;
       z-index: 5;
-      background: linear-gradient(to top, var(--bg) 85%, transparent);
+      background: rgba(244, 236, 216, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(58, 48, 40, 0.05);
     }
 
     @media (max-width: 600px) {
@@ -1190,29 +1193,42 @@
 
           if (viewer) {
               viewer.style.scrollBehavior = "auto";
+              viewer.style.opacity = "0"; // BLANK THE PAGE (Kindle Style Transition)
           }
 
-          /* OUT OF THE BOX SOLLUTION: The "Automated Triple-Tap" Engine
-           * Mobile browsers delay layout reflows in iframes. If tapping 3 times 
-           * works manually to fix the position, we automate those exactly!
+          /* OUT OF THE BOX SOLLUTION: The "Automated Four-Tap" Engine
+           * Mobile browsers delay layout reflows in iframes. Tapping forces the DOM 
+           * to accurately calculate dimensions. The page goes blank during this to hide the layout glitch.
            */
           try {
               // TAP 1: Inject the chapter iframe into the DOM
               await rendition.display(targetCfi);
               
-              // TAP 2: Wait 120ms for CSS to apply, then recalculate scroll
+              // TAP 2: Wait 100ms for CSS to apply
               setTimeout(async () => {
                   await rendition.display(targetCfi);
                   
-                  // TAP 3: Wait 150ms for images/fonts to expand, make the final perfect snap
+                  // TAP 3: Wait 120ms for fonts to expand
                   setTimeout(() => {
                       rendition.display(targetCfi);
-                      if (viewer) viewer.style.scrollBehavior = "smooth";
-                  }, 150);
-              }, 120);
+                      
+                      // TAP 4: Wait 100ms, make the final perfect snap, and fade the view back in
+                      setTimeout(() => {
+                          rendition.display(targetCfi);
+                          
+                          if (viewer) {
+                              viewer.style.scrollBehavior = "smooth";
+                              viewer.style.opacity = "1"; // FADE IN 
+                          }
+                      }, 100);
+                  }, 120);
+              }, 100);
           } catch (e) {
               console.warn("Navigation Error:", e);
-              if (viewer) viewer.style.scrollBehavior = "smooth";
+              if (viewer) {
+                  viewer.style.scrollBehavior = "smooth";
+                  viewer.style.opacity = "1";
+              }
           }
         };
 
