@@ -642,6 +642,22 @@
         const ttsBtn = document.getElementById('tts-toggle');
         const ttsIcon = document.getElementById('tts-icon');
 
+        // --- NAVIGATION STATE & STABILIZER ---
+        let isNavigating = false;
+        let lastScrollTop = 0;
+
+        if (viewer) {
+            viewer.addEventListener("scroll", () => {
+                if (isNavigating) return;
+                const current = viewer.scrollTop;
+                // detect sudden jump glitch
+                if (Math.abs(current - lastScrollTop) > 400) {
+                    viewer.scrollTop = lastScrollTop;
+                }
+                lastScrollTop = viewer.scrollTop;
+            });
+        }
+
         function applyTTSHighlight(doc, range) {
             removeTTSHighlight(doc);
             const win = doc.defaultView;
@@ -758,8 +774,6 @@
                 
                 if (targetRange && currentDoc) {
                     applyTTSHighlight(currentDoc, targetRange);
-                    // DELIBERATELY REMOVED: Auto-scroll
-                    // Mass-chunk highlighting confuses scrollIntoView. Left to manual user scroll.
                 }
             };
 
@@ -990,6 +1004,8 @@
 
         rendition.on("rendered", () => {
           storedHighlights.forEach(cfi => rendition.annotations.add("highlight", cfi, {}, (e) => showConfirm(cfi), "epubjs-hl"));
+          // helps layout settle faster
+          if (viewer) viewer.scrollTop += 1;
         });
 
         let currentSelectionCfi = null;
@@ -1178,16 +1194,64 @@
         document.getElementById("fontDown")?.addEventListener('click', () => scale(-10));
 
         // --- NAVIGATION ---
-        const smartNavigate = (targetCfi) => {
-          stopTTS(); 
+        const smartNavigate = async (targetCfi) => {
+          if (isNavigating) return;
+          isNavigating = true;
+
+          stopTTS();
+
           if (sidebar) sidebar.classList.remove('active');
           if (overlay) overlay.classList.remove('active');
-          if (viewer) viewer.scrollTop = 0;
-          rendition.display(targetCfi).then(() => {
+
+          if (viewer) viewer.style.scrollBehavior = "auto";
+
+          // STEP 1: initial jump
+          await rendition.display(targetCfi);
+
+          // STEP 2: retry-based correction
+          let attempts = 0;
+
+          const stabilize = () => {
+            const loc = rendition.currentLocation();
+
+            if (!loc || !loc.start) {
+              if(attempts < 5) {
+                  attempts++;
+                  requestAnimationFrame(stabilize);
+              } else {
+                  finish();
+              }
+              return;
+            }
+
+            const current = loc.start.cfi;
+
+            if (current !== targetCfi && attempts < 5) {
+              attempts++;
+              rendition.display(targetCfi);
+              requestAnimationFrame(stabilize);
+            } else {
+              finish();
+            }
+          };
+
+          const finish = () => {
+            // STEP 3: preload next section
             setTimeout(() => {
-              rendition.display(targetCfi).then(() => { if(viewer) viewer.scrollTop = 0; });
-            }, 150); 
-          });
+              try {
+                rendition.next();
+                rendition.prev();
+              } catch (e) {}
+            }, 150);
+
+            // STEP 4: restore smooth scroll
+            setTimeout(() => {
+              if (viewer) viewer.style.scrollBehavior = "smooth";
+              isNavigating = false;
+            }, 200);
+          };
+
+          requestAnimationFrame(stabilize);
         };
 
         book.loaded.navigation.then(toc => {
@@ -1232,7 +1296,10 @@
           if (matched) {
               tocLinks.forEach(link => link.classList.remove('active-chapter'));
               matched.classList.add('active-chapter');
-              matched.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              // We do not scroll sidebar if we are actively navigating (prevents sidebar jump glitches)
+              if (!isNavigating) {
+                  matched.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
           }
 
           if (book.locations.length() > 0) {
@@ -1244,7 +1311,12 @@
         });
 
         const saved = localStorage.getItem(`liberatica-pos-${bookName}`);
-        if (saved) rendition.display(saved).then(() => setTimeout(() => rendition.display(saved), 300));
+        if (saved) {
+            // Use smart navigate for the initial load if possible, to avoid jumps
+            smartNavigate(saved).catch(() => {
+                rendition.display(saved).then(() => setTimeout(() => rendition.display(saved), 300));
+            });
+        }
         setTimeout(() => book.locations.generate(1600), 2000);
 
       } catch (err) { console.error(err); }
