@@ -492,6 +492,56 @@
             });
         };
 
+        // --- STRICT SMART RECOMMENDATION ALGORITHM ---
+        const getTags = (book) => {
+            // FIX: Check for both lowercase 'tags' and uppercase 'Tags' to match the database strictly
+            const rawTags = book.tags || book.Tags;
+            if (!rawTags) return [];
+            
+            // Strip out non-breaking spaces, convert to lowercase, 
+            // and use a smart regex to split seamlessly by either commas or spaces
+            let tagsString = Array.isArray(rawTags) ? rawTags.join(',') : String(rawTags);
+            tagsString = tagsString.replace(/\u00A0/g, ' ').toLowerCase();
+            return tagsString.split(/[\s,]+/).filter(Boolean);
+        };
+
+        const getSmartRecommendations = (selectedBook, allBooks) => {
+            const selectedCategory = selectedBook.Category || '';
+            const selectedTags = getTags(selectedBook);
+            const scoredBooks = [];
+
+            for (const book of allBooks) {
+                if (book.id === selectedBook.id) continue; // Exclude current book
+
+                let score = 0;
+                const bookTags = getTags(book);
+                
+                // Tag Matching (STRICT EXACT MATCH)
+                let tagMatches = 0;
+                for (const sTag of selectedTags) {
+                    if (bookTags.includes(sTag)) tagMatches++;
+                }
+
+                if (tagMatches >= 2) score += 6;
+                else if (tagMatches === 1) score += 3;
+
+                // Category Matching (Secondary tie-breaker)
+                if (book.Category === selectedCategory && selectedCategory !== '') {
+                    score += 1;
+                }
+
+                // ONLY include books that have exact tag matches
+                if (tagMatches > 0) {
+                    scoredBooks.push({ book, score });
+                }
+            }
+
+            // Sort strictly by score descending. ZERO randomization.
+            scoredBooks.sort((a, b) => b.score - a.score);
+
+            return scoredBooks.map(item => item.book).slice(0, 6);
+        };
+
         // --- SESSION BASED LOADER ---
         let animationPromise = Promise.resolve();
         if (sessionStorage.getItem('liberatica_loader_played')) {
@@ -710,14 +760,8 @@
             };
 
             // Related Books
-            const categoryBooks = allBooks.filter(x => x.Category === b.Category);
-            const currentIndex = categoryBooks.findIndex(x => x.id === b.id);
-            let rel = [];
-            if (categoryBooks.length > 1) {
-                const reorderedBooks = [...categoryBooks.slice(currentIndex + 1), ...categoryBooks.slice(0, currentIndex)];
-                rel = reorderedBooks.slice(0, 6);
-            }
-
+            const rel = getSmartRecommendations(b, allBooks);
+            
             if (rel.length > 0) {
                 const rCont = paletteDetailView.querySelector('#related-books-container');
                 rCont.innerHTML = `<h4>You might also like</h4><div class="related-books-grid">${rel.map(x => `<div class="related-book" data-id="${x.id}"><img src="${x.Cover_url}"></div>`).join('')}</div>`;
