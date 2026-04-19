@@ -552,7 +552,7 @@
             if (spotlightBooks?.length) {
                 const fb = spotlightBooks[Math.floor(Math.random() * spotlightBooks.length)];
                 const featDiv = document.getElementById('featured-book');
-                featDiv.innerHTML = `<img src="${fb.Cover_url}" alt="${fb.Title}" onerror="this.src='https://placehold.co/150x200/f5f4f0/4b4a47?text=Cover';"><div class="featured-content"><div class="spotlight-label">Library Spotlight</div><h2>${fb.Title}</h2><p class="author">by ${fb.Author}</p>${fb.Featured_Quote || fb.Quote ? `<div class="featured-quote">"${fb.Featured_Quote || fb.Quote}"</div>` : ''}<div class="buttons"><a href="reader.html?book=${encodeURIComponent(fb.pdf_url)}&title=${encodeURIComponent(fb.Title)}" class="read">Read</a><a href="${fb.epub_url}" download class="download">Download</a></div></div>`;
+                featDiv.innerHTML = `<img src="${fb.Cover_url}" alt="${fb.Title}" onerror="this.src='https://placehold.co/150x200/f5f4f0/4b4a47?text=Cover';"><div class="featured-content"><div class="spotlight-label">Library Spotlight</div><h2>${fb.Title}</h2><p class="author">by ${fb.Author}</p>${fb.Featured_Quote || fb.Quote ? `<div class="featured-quote">"${fb.Featured_Quote || fb.Quote}"</div>` : ''}<div class="buttons"><a href="/reader.html?book=${encodeURIComponent(fb.pdf_url)}&title=${encodeURIComponent(fb.Title)}" class="read">Read</a><a href="${fb.epub_url}" download class="download">Download</a></div></div>`;
                 featDiv.classList.add('visible');
             }
 
@@ -579,7 +579,7 @@
             const batch = currentRenderedBooks.slice(booksDisplayed, booksDisplayed + BOOKS_PER_BATCH);
             batch.forEach(b => {
                 const card = document.createElement('div'); card.className = 'book-card'; card.dataset.title = b.Title;
-                card.innerHTML = `<img src="${b.Cover_url}" alt="${b.Title}" loading="lazy" onerror="this.src='https://placehold.co/250x300/f5f4f0/4b4a47?text=Cover';"><div class="book-content"><div><h3>${b.Title}</h3><p class="author">${b.Author}</p><p class="category">${b.Category}</p></div><div class="buttons"><a href="reader.html?book=${encodeURIComponent(b.pdf_url)}&title=${encodeURIComponent(b.Title)}" class="read" aria-label="Read Online" title="Read Online">Read</a><a href="${b.epub_url}" download class="download" aria-label="Download EPUB" title="Download EPUB">Download</a></div></div>`;
+                card.innerHTML = `<img src="${b.Cover_url}" alt="${b.Title}" loading="lazy" onerror="this.src='https://placehold.co/250x300/f5f4f0/4b4a47?text=Cover';"><div class="book-content"><div><h3>${b.Title}</h3><p class="author">${b.Author}</p><p class="category">${b.Category}</p></div><div class="buttons"><a href="/reader.html?book=${encodeURIComponent(b.pdf_url)}&title=${encodeURIComponent(b.Title)}" class="read" aria-label="Read Online" title="Read Online">Read</a><a href="${b.epub_url}" download class="download" aria-label="Download EPUB" title="Download EPUB">Download</a></div></div>`;
                 bookGrid.appendChild(card); new IntersectionObserver(e => e.forEach(en => { if(en.isIntersecting) { en.target.classList.add('is-visible'); }})).observe(card);
             });
             booksDisplayed += batch.length;
@@ -665,7 +665,7 @@
                     <div class="palette-detail-info"><h2>${b.Title}</h2><p>by ${b.Author}</p>
                         <div class="actions-wrapper">
                             <div class="buttons">
-                                <a href="reader.html?book=${encodeURIComponent(b.pdf_url)}&title=${encodeURIComponent(b.Title)}" class="read" aria-label="Read Online" title="Read Online">Read</a>
+                                <a href="/reader.html?book=${encodeURIComponent(b.pdf_url)}&title=${encodeURIComponent(b.Title)}" class="read" aria-label="Read Online" title="Read Online">Read</a>
                                 <a href="${b.epub_url}" download class="download" aria-label="Download EPUB" title="Download EPUB">Download</a>
                                 <button class="share-btn-main" aria-label="Share">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><use href="#icon-share"/></svg> Share
