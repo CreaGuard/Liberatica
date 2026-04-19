@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Liberatica Reader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+  <style>
+    :root {
+      /* Permanent Sepia Theme */
+      --bg: #F4ECD8;
+      --text: #3A3028;
+      --accent: #5E4028;
+      --ui-bg: #E8DFCB;
+      --ui-border: rgba(58, 48, 40, 0.12);
+      --btn-hover: rgba(58, 48, 40, 0.05);
+      --shadow: 0 4px 12px rgba(58, 48, 40, 0.08);
+    }
+
+    /* Base Reset */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100dvh; 
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Modern Redesigned Header - Sleek & Thin */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px; 
+      background: rgba(244, 236, 216, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      border-bottom: 1px solid rgba(58, 48, 40, 0.05);
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Tactile Button Design */
+    button {
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      color: var(--text);
+      font-size: 13px; 
+      font-weight: 600;
+      padding: 6px 14px; 
+      border-radius: 20px; 
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: #efe7d5;
+      box-shadow: 0 6px 16px rgba(58, 48, 40, 0.12);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(58, 48, 40, 0.1);
+    }
+
+    #toc-toggle {
+      padding: 6px 16px;
+      gap: 6px;
+      background: var(--accent);
+      color: #F4ECD8;
+      border: none;
+    }
+    
+    #toc-toggle svg { width: 16px; height: 16px; }
+
+    #tts-toggle {
+        background: #D4AF37; /* Golden tactile button */
+        color: #3A3028;
+        border: none;
+        padding: 6px 16px;
+        gap: 6px;
+        z-index: 110;
+    }
+
+    #tts-toggle.playing {
+        background: #FF8C00;
+        color: white;
+    }
+
+    /* PRO UX: Voice Selector Dropdown */
+    #voiceSelect {
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 12px;
+      outline: none;
+      max-width: 100px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      text-overflow: ellipsis;
+    }
+
+    .font-pill-group {
+      display: flex;
+      background: var(--ui-bg);
+      border-radius: 20px;
+      border: 1px solid var(--ui-border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .font-pill-group button {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 6px 16px;
+      background: transparent;
+    }
+
+    .font-pill-group button:first-child { border-right: 1px solid var(--ui-border); }
+    .small-a { font-size: 11px; }
+    .large-a { font-size: 16px; }
+
+    /* Selection Menu */
+    #selection-menu {
+      position: fixed;
+      display: none;
+      z-index: 1000;
+      background: #3A3028;
+      color: #F4ECD8;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      flex-direction: row;
+      animation: popIn 0.2s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    #selection-menu button {
+      border: none;
+      color: inherit;
+      padding: 8px 16px;
+      font-size: 13px;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 8px;
+    }
+
+    /* Dictionary Panel */
+    #dictionary-panel {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      height: 55vh;
+      background: var(--ui-bg);
+      border-top: 1px solid var(--ui-border);
+      z-index: 1000;
+      transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+      border-radius: 24px 24px 0 0;
+    }
+
+    #dictionary-panel.open { bottom: 0; }
+
+    .dict-tabs { display: flex; padding: 10px 20px 0 20px; gap: 10px; }
+    .dict-tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: 0.2s;
+    }
+    .dict-tab.active { opacity: 1; color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+    /* Sidebar Overlay */
+    #sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100dvh;
+      background: rgba(58, 48, 40, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 105;
+      backdrop-filter: blur(4px);
+    }
+    #sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+    /* Sidebar logic */
+    #toc-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 100dvh;
+      background: var(--ui-bg);
+      z-index: 110;
+      transform: translateX(-100%); 
+      visibility: hidden; 
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
+      box-shadow: 10px 0 50px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      padding: 24px 20px;
+    }
+
+    #toc-sidebar.active {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    #toc-list a {
+      display: block;
+      padding: 14px 16px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 15px;
+      border-bottom: 1px solid var(--ui-border);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 12px;
+      margin-bottom: 4px;
+      position: relative;
+    }
+
+    #toc-list a:hover {
+      background: rgba(94, 64, 40, 0.06);
+      padding-left: 24px; 
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    #toc-list a.active-chapter {
+      color: var(--accent) !important;
+      font-weight: 800 !important;
+      background: rgba(94, 64, 40, 0.12);
+      padding-left: 24px !important;
+      border-bottom-color: transparent;
+    }
+
+    #toc-list a.active-chapter::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      height: 60%;
+      width: 4px;
+      background: var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Viewer Area - Optimized vertical space */
+    #viewer-container {
+      flex: 1 1 auto;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      padding: 45px 0 30px 0; 
+      box-sizing: border-box;
+    }
+    #viewer { 
+      width: 100%; 
+      height: 100%; 
+      overflow-y: auto; 
+      overflow-anchor: none; 
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    /* Progress Container - Sleek & Thin */
+    #progress-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 24px 10px 24px; 
+      font-size: 10px; 
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text);
+      opacity: 0.6;
+      z-index: 5;
+      background: linear-gradient(to top, var(--bg) 85%, transparent);
+    }
+
+    @media (max-width: 600px) {
+      #viewer-container { padding: 45px 0 35px 0; }
+      #toc-toggle span, #tts-toggle span { display: none; }
+      #toc-toggle, #tts-toggle { padding: 6px 12px; }
+      #toc-sidebar { width: 85%; }
+      #voiceSelect { max-width: 80px; }
+    }
+
+    .dict-scroll-area { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .dict-word { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .mw-pos { font-weight: 800; color: var(--accent); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: block;}
+    .mw-sense { margin-bottom: 16px; border-left: 2px solid var(--ui-border); padding-left: 14px; }
+  </style>
+</head>
+<body>
+  
+  <header>
+    <div class="controls-group">
+      <button id="toc-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <span>Library</span>
+      </button>
+      <button id="tts-toggle">
+        <svg id="tts-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
+        <span>Listen</span>
+      </button>
+      <select id="voiceSelect" style="display:none;"></select>
+    </div>
+    <div class="controls-group">
+      <div class="font-pill-group">
+        <button id="fontDown" title="Smaller text"><span class="small-a">A</span></button>
+        <button id="fontUp" title="Larger text"><span class="large-a">A</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div id="selection-menu">
+    <button id="add-highlight">Highlight</button>
+    <button id="define-word">Define</button>
+    <button id="read-word">Read</button>
+  </div>
+
+  <div id="dictionary-panel">
+    <div class="dict-tabs">
+        <div class="dict-tab active" data-target="def">Meaning</div>
+        <div class="dict-tab" data-target="thes">Thesaurus</div>
+    </div>
+    <div class="dict-scroll-area">
+        <div id="dict-word-text" class="dict-word">Definition</div>
+        <div id="dict-content" class="dict-content">Search...</div>
+    </div>
+    <button id="close-dict" style="position:absolute; top:20px; right:20px; border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
+  </div>
+
+  <div id="confirm-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#3A3028; color:#F4ECD8; padding:24px; border-radius:16px; z-index:2000; box-shadow:0 20px 50px rgba(0,0,0,0.4); text-align:center; width:280px;">
+    <p style="margin-top:0;">Delete highlight?</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button id="cancel-delete" style="background:transparent; border:1px solid rgba(255,255,255,0.2); color:white; box-shadow:none;">Keep</button>
+      <button id="confirm-delete" style="background:#d9534f; border:none; color:white; box-shadow:none;">Delete</button>
+    </div>
+  </div>
+
+  <div id="sidebar-overlay"></div>
+
+  <div id="toc-sidebar">
+      <h2 style="margin-top:0; font-size:18px; letter-spacing:1.5px; text-transform:uppercase; border-bottom:1px solid var(--ui-border); padding-bottom:15px; margin-bottom:15px; opacity:0.6;">Contents</h2>
+      <ul id="toc-list" style="list-style:none; padding:0; margin:0;"></ul>
+  </div>
+
+  <div id="viewer-container">
+    <div id="message" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.5; color:var(--text); font-weight:bold;">Opening...</div>
+    <div id="viewer" style="width:100%; height:100%;"></div>
+  </div>
+
+  <div id="progress-container">
+    <span id="progress-location">...</span>
+    <span id="progress-percent"></span>
+  </div>
+
+  <script>
+    // ===== URL PARAMS =====
+    const params = new URLSearchParams(window.location.search);
+    const bookUrlRaw = params.get("book");
+
+    // Backward compatibility for basic filename inputs
+    let bookUrl = bookUrlRaw;
+    if (bookUrlRaw && !bookUrlRaw.startsWith("http")) {
+        const supabaseBaseUrl = "https://fqvipzoblrtbbavfixap.supabase.co/storage/v1/object/public/books/epubs/";
+        bookUrl = `${supabaseBaseUrl}${encodeURIComponent(bookUrlRaw)}`;
+    }
+    const bookName = bookUrlRaw || "unknown-book";
+
+    const DICT_KEY = "6271e438-3022-45c7-b47b-79e85c009c96";
+    const THES_KEY = "7abec705-2cce-4636-9e74-bb5075ea54a3";
+
+    // --- PRO VOICE LOADING & FILTERING ---
+    let voices = [];
+    let selectedVoiceIndex = 0;
+
+    function populateVoiceList() {
+        voices = window.speechSynthesis.getVoices();
+        const select = document.getElementById("voiceSelect");
+        
+        if (voices.length > 0 && select.options.length === 0) {
+            let filtered = voices.filter(v => v.lang.startsWith("en"));
+            if (filtered.length === 0) filtered = voices;
+            
+            filtered.forEach((voice) => {
+                const option = document.createElement("option");
+                option.value = voices.indexOf(voice);
+                option.textContent = voice.name.replace(/Microsoft |Google /ig, '').trim();
+                select.appendChild(option);
+            });
+
+            const bestVoice = 
+                voices.find(v => v.name.includes("Google US English")) ||
+                voices.find(v => v.name.includes("Google UK English Female")) ||
+                voices.find(v => v.name.includes("Microsoft Zira")) ||
+                voices.find(v => v.name.includes("Female") && v.lang.startsWith("en")) ||
+                voices.find(v => v.lang === "en-US") ||
+                voices[0];
+
+            if (bestVoice) {
+                selectedVoiceIndex = voices.indexOf(bestVoice);
+                select.value = selectedVoiceIndex;
+            }
+            select.style.display = "block";
+            
+            select.addEventListener('change', (e) => {
+                selectedVoiceIndex = parseInt(e.target.value, 10);
+            });
+        }
+    }
+    
+    window.speechSynthesis.onvoiceschanged = populateVoiceList;
+    setTimeout(populateVoiceList, 100);
+
+    // ===== FORMAT DETECTION =====
+    function detectFormat(url) {
+        if (!url) return "unknown";
+        const lower = decodeURIComponent(url).toLowerCase();
+        
+        if (lower.endsWith(".epub")) return "epub";
+        if (lower.endsWith(".pdf")) return "pdf";
+        if (lower.includes("drive.google.com")) return "pdf";
+        if (lower.includes("/epubs/")) return "epub";
+        
+        return "epub"; // default
+    }
+
+    // ===== MAIN ROUTER =====
+    function initReader() {
+        const msgElem = document.getElementById("message");
+        if (!bookUrlRaw) {
+            if (msgElem) msgElem.innerHTML = "<h2>No book provided</h2>";
+            return;
+        }
+
+        const format = detectFormat(bookUrl);
+
+        if (format === "pdf") {
+            loadPDF(bookUrl);
+        } else {
+            loadEPUB(bookUrl);
+        }
+    }
+
+    // ===== PDF LOADER (NEW) =====
+    function loadPDF(url) {
+        const viewer = document.getElementById("viewer");
+        const msgElem = document.getElementById("message");
+        if (msgElem) msgElem.style.display = "none";
+
+        // Fix Google Drive links for direct iframe preview
+        if (url.includes("drive.google.com") && url.includes("/view")) {
+            url = url.split("/view")[0] + "/preview";
+        }
+
+        viewer.innerHTML = `
+            <iframe 
+                src="${url}" 
+                style="width:100%; height:100%; border:none;"
+                allow="autoplay"
+            ></iframe>
+        `;
+
+        console.log("PDF loaded dynamically");
+
+        // 🚫 Disable EPUB-only visual features
+        const tocToggle = document.getElementById('toc-toggle');
+        const ttsToggle = document.getElementById('tts-toggle');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const fontGroup = document.querySelector('.font-pill-group');
+        const progressContainer = document.getElementById('progress-container');
+        
+        if (tocToggle) tocToggle.style.display = 'none';
+        if (ttsToggle) ttsToggle.style.display = 'none';
+        if (voiceSelect) voiceSelect.style.display = 'none';
+        if (fontGroup) fontGroup.style.display = 'none';
+        if (progressContainer) progressContainer.style.display = 'none';
+        
+        if (typeof window.speechSynthesis !== "undefined") {
+            window.speechSynthesis.cancel();
+        }
+    }
+
+    // ===== EPUB LOADER (EXISTING CORE) =====
+    async function loadEPUB(epubUrl) {
+      const selectionMenu = document.getElementById("selection-menu");
+      const highlightBtn = document.getElementById("add-highlight");
+      const defineBtn = document.getElementById("define-word");
+      const readBtn = document.getElementById("read-word");
+      const dictPanel = document.getElementById("dictionary-panel");
+      const dictContent = document.getElementById("dict-content");
+      const sidebar = document.getElementById('toc-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const viewer = document.getElementById('viewer');
+      
+      try {
+        const response = await fetch(epubUrl);
+        const bookData = await response.arrayBuffer();
+        const book = ePub(bookData);
+        
+        const rendition = book.renderTo("viewer", {
+          width: "100%", height: "100%", flow: "scrolled", manager: "continuous"
+        });
+
+        // KINDLE STYLING
+        rendition.themes.default({
+          "html, body": { 
+            "-webkit-touch-callout": "none !important", 
+            "padding": "0 12px !important", 
+            "line-height": "1.65 !important", 
+            "box-sizing": "border-box !important", 
+            "max-width": "100% !important" 
+          },
+          "p": {
+            "margin-top": "0 !important",
+            "margin-bottom": "0.8em !important", 
+            "text-align": "justify !important"
+          },
+          "h1, h2, h3, h4, h5, h6, .chapter-title, .title, .heading, [class*='title'], [class*='heading'], [id*='title'], [id*='heading'], .ct, .ch": {
+            "text-align": "center !important", 
+            "display": "flex !important",
+            "flex-direction": "column !important",
+            "align-items": "center !important",
+            "justify-content": "center !important",
+            "width": "100% !important",
+            "margin-left": "0 !important",
+            "margin-right": "0 !important",
+            "padding-left": "0 !important",
+            "padding-right": "0 !important",
+            "margin-top": "1.5em !important", 
+            "margin-bottom": "1em !important",
+            "line-height": "1.3 !important",
+            "font-weight": "800 !important",
+            "text-indent": "0 !important"
+          },
+          "img, svg, figure, [class*='image'], [class*='figure']": {
+            "display": "block !important",
+            "margin-left": "auto !important",
+            "margin-right": "auto !important",
+            "max-width": "100% !important",
+            "height": "auto !important",
+            "text-align": "center !important"
+          },
+          "a": { 
+            "color": "#5E4028 !important", 
+            "text-decoration": "underline !important" 
+          },
+          ".epubjs-hl": { 
+            "background-color": "rgba(212, 175, 55, 0.35) !important", 
+            "border-radius": "2px", 
+            "cursor": "pointer" 
+          },
+          ".temp-selection-hl": {
+            "background-color": "rgba(212, 175, 55, 0.5) !important",
+            "border-radius": "2px"
+          }
+        });
+
+        rendition.hooks.content.register((contents) => {
+            const doc = contents.document;
+            if (!doc.getElementById('tts-highlight-style')) {
+                const style = doc.createElement('style');
+                style.id = 'tts-highlight-style';
+                style.innerHTML = `
+                    ::highlight(tts-eye-track) { background-color: #FF8C00 !important; color: white !important; border-radius: 3px; }
+                    ::selection { background: rgba(212, 175, 55, 0.4) !important; }
+                `;
+                doc.head.appendChild(style);
+            }
+        });
+
+        rendition.themes.register("sepia", {
+          "html, body": { "background": "#F4ECD8 !important", "color": "#3A3028 !important" },
+          "a": { "color": "#5E4028 !important" }
+        });
+        rendition.themes.select("sepia");
+        let fontSize = 100;
+
+        await rendition.display();
+        const msgElem = document.getElementById("message");
+        if (msgElem) msgElem.style.display = "none";
+
+        // --- NON-DESTRUCTIVE TTS MAPPING & CHUNKING ---
+        let ttsActive = false;
+        let allTextNodes = [];
+        let fullText = "";
+
+        let ttsChunks = [];
+        let ttsCurrentChunkIndex = 0;
+        let ttsCumulativeLength = 0;
+        let ttsAbsoluteStartOffset = 0;
+        let currentDoc = null;
+
+        const ttsBtn = document.getElementById('tts-toggle');
+        const ttsIcon = document.getElementById('tts-icon');
+
+        function applyTTSHighlight(doc, range) {
+            removeTTSHighlight(doc);
+            const win = doc.defaultView;
+            if (win && win.CSS && win.CSS.highlights && win.Highlight) {
+                try {
+                    const highlight = new win.Highlight(range);
+                    win.CSS.highlights.set('tts-eye-track', highlight);
+                    return;
+                } catch (e) {}
+            } 
+            const sel = win ? win.getSelection() : null;
+            if (sel) {
+                sel.removeAllRanges();
+                sel.addRange(range);
+                sel.isTTSHighlight = true;
+            }
+        }
+
+        function removeTTSHighlight(doc) {
+            if (!doc) return;
+            const win = doc.defaultView;
+            if (win && win.CSS && win.CSS.highlights) {
+                win.CSS.highlights.delete('tts-eye-track');
+            }
+            const sel = win ? win.getSelection() : null;
+            if (sel && sel.isTTSHighlight) {
+                sel.removeAllRanges();
+                sel.isTTSHighlight = false;
+            }
+        }
+
+        const stopTTS = () => {
+            window.speechSynthesis.cancel();
+            ttsActive = false;
+            if (ttsBtn) {
+                ttsBtn.classList.remove('playing');
+                const span = ttsBtn.querySelector('span');
+                if (span) span.textContent = "Listen";
+            }
+            if (ttsIcon) ttsIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+            
+            const contentsList = rendition.getContents();
+            contentsList.forEach(c => removeTTSHighlight(c.document));
+        };
+
+        const buildTextMap = (doc) => {
+            allTextNodes = [];
+            fullText = "";
+            const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
+            let n;
+            while (n = walker.nextNode()) {
+                const parent = n.parentElement;
+                if (!parent) continue;
+                const tag = parent.tagName.toUpperCase();
+                if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') continue;
+                if (parent.classList.contains('epubjs-hl')) continue;
+                if (parent.style.display === 'none' || parent.style.visibility === 'hidden') continue;
+
+                allTextNodes.push(n);
+                fullText += n.textContent;
+            }
+        };
+
+        function splitText(text, maxLength = 120) {
+            const chunks = [];
+            let i = 0;
+            while (i < text.length) {
+                let chunk = text.substring(i, i + maxLength);
+                if (i + maxLength < text.length) {
+                    let match = chunk.match(/.*[.?!]\s/);
+                    if (!match) match = chunk.match(/.*[,;:]\s/);
+                    if (!match) match = chunk.match(/.*\s/);
+                    let splitIndex = match ? match[0].length : chunk.length;
+                    chunk = chunk.substring(0, splitIndex);
+                }
+                chunks.push(chunk);
+                i += chunk.length;
+            }
+            return chunks;
+        }
+
+        const playNextChunk = () => {
+            if (!ttsActive || ttsCurrentChunkIndex >= ttsChunks.length) {
+                stopTTS();
+                return;
+            }
+
+            const chunkText = ttsChunks[ttsCurrentChunkIndex];
+            
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(chunkText);
+            
+            if (voices.length > 0) {
+                const selectedVoice = voices[selectedVoiceIndex] || voices[0];
+                utterance.voice = selectedVoice;
+                utterance.lang = selectedVoice.lang;
+            } else {
+                utterance.lang = 'en-US';
+            }
+            
+            utterance.rate = 0.9; 
+            utterance.pitch = 1.1; 
+
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            const doPhraseHighlight = () => {
+                const charIndex = ttsAbsoluteStartOffset + ttsCumulativeLength;
+                let startTrim = 0;
+                while(startTrim < chunkText.length && (chunkText[startTrim] === ' ' || chunkText[startTrim] === '\n')) {
+                    startTrim++;
+                }
+                const targetRange = findExactRangeFromNodes(allTextNodes, charIndex + startTrim, chunkText.length - startTrim);
+                
+                if (targetRange && currentDoc) {
+                    applyTTSHighlight(currentDoc, targetRange);
+                    requestAnimationFrame(() => {
+                        try {
+                            const el = targetRange.startContainer.nodeType === Node.TEXT_NODE 
+                                ? targetRange.startContainer.parentElement 
+                                : targetRange.startContainer;
+                            if (el && !isMobile) {
+                                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                        } catch (e) {}
+                    });
+                }
+            };
+
+            if (!isMobile && 'onboundary' in utterance) {
+                let boundaryFired = false;
+
+                utterance.onboundary = (event) => {
+                    boundaryFired = true;
+                    if (event.name === 'word') {
+                        const charIndex = event.charIndex + ttsAbsoluteStartOffset + ttsCumulativeLength;
+                        const remaining = fullText.substring(charIndex);
+                        const wordMatch = remaining.match(/^[\w'’\u2018\u2019\u201c\u201d,-]+/);
+                        const wordLen = wordMatch ? wordMatch[0].length : 1;
+
+                        const targetRange = findExactRangeFromNodes(allTextNodes, charIndex, wordLen);
+                        
+                        if (targetRange && currentDoc) {
+                            applyTTSHighlight(currentDoc, targetRange);
+                            requestAnimationFrame(() => {
+                                try {
+                                    const el = targetRange.startContainer.nodeType === Node.TEXT_NODE 
+                                        ? targetRange.startContainer.parentElement 
+                                        : targetRange.startContainer;
+                                    if (el && !isMobile) {
+                                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                                    }
+                                } catch (e) {}
+                            });
+                        }
+                    }
+                };
+
+                setTimeout(() => {
+                    if (!boundaryFired && ttsActive) {
+                        doPhraseHighlight();
+                    }
+                }, 500);
+
+            } else {
+                doPhraseHighlight();
+            }
+
+            utterance.onend = () => {
+                ttsCumulativeLength += chunkText.length;
+                ttsCurrentChunkIndex++;
+                playNextChunk();
+            };
+
+            utterance.onerror = (e) => {
+                if (ttsActive) stopTTS();
+            };
+
+            setTimeout(() => {
+                if (ttsActive) window.speechSynthesis.speak(utterance);
+            }, 50);
+        };
+
+        const startTTSFromNode = (contents, targetNode, targetOffset) => {
+            stopTTS();
+            
+            currentDoc = contents.document;
+            buildTextMap(currentDoc);
+
+            let absoluteOffset = 0;
+            let found = false;
+            for (let i = 0; i < allTextNodes.length; i++) {
+                if (allTextNodes[i] === targetNode) {
+                    absoluteOffset += targetOffset;
+                    found = true;
+                    break;
+                }
+                absoluteOffset += allTextNodes[i].textContent.length;
+            }
+
+            if (!found) absoluteOffset = 0;
+
+            while (absoluteOffset > 0 && !/\s/.test(fullText[absoluteOffset - 1])) {
+                absoluteOffset--;
+            }
+
+            const textToRead = fullText.substring(absoluteOffset);
+            if (!textToRead.trim()) return;
+
+            ttsActive = true;
+            if (ttsBtn) {
+                ttsBtn.classList.add('playing');
+                const span = ttsBtn.querySelector('span');
+                if (span) span.textContent = "Stop";
+            }
+            if (ttsIcon) ttsIcon.innerHTML = '<path d="M6 6h12v12H6z"/>';
+
+            ttsAbsoluteStartOffset = absoluteOffset;
+            ttsChunks = splitText(textToRead, 120); 
+            ttsCurrentChunkIndex = 0;
+            ttsCumulativeLength = 0;
+
+            playNextChunk();
+        };
+
+        function findExactRangeFromNodes(nodes, targetIndex, length) {
+            let currentIdx = 0;
+            for (let node of nodes) {
+                const nodeLen = node.textContent.length;
+                if (currentIdx + nodeLen > targetIndex) {
+                    const startOffset = targetIndex - currentIdx;
+                    const doc = node.ownerDocument;
+                    const range = doc.createRange();
+                    try {
+                        range.setStart(node, Math.max(0, startOffset));
+                        range.setEnd(node, Math.min(startOffset + length, nodeLen));
+                        return range;
+                    } catch(e) { return null; }
+                }
+                currentIdx += nodeLen;
+            }
+            return null;
+        }
+
+        const startTTSFromTop = async () => {
+            const contentsList = rendition.getContents();
+            if (!contentsList || contentsList.length === 0) return;
+
+            for (let contents of contentsList) {
+                const sel = contents.window.getSelection();
+                if (sel && sel.toString().trim().length > 0 && sel.rangeCount > 0 && !sel.isTTSHighlight) {
+                    const range = sel.getRangeAt(0);
+                    let node = range.startContainer;
+                    if (node.nodeType !== Node.TEXT_NODE) {
+                        const walker = contents.document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
+                        node = walker.nextNode() || node;
+                    }
+                    if (node && node.nodeType === Node.TEXT_NODE) {
+                        startTTSFromNode(contents, node, range.startOffset || 0);
+                        if (selectionMenu) selectionMenu.style.display = "none";
+                        return;
+                    }
+                }
+            }
+            
+            let startNode = null;
+            let activeContents = null;
+
+            for (let contents of contentsList) {
+                const doc = contents.document;
+                buildTextMap(doc);
+
+                let iframeOffsetTop = 0;
+                if (contents.window && contents.window.frameElement) {
+                    iframeOffsetTop = contents.window.frameElement.getBoundingClientRect().top;
+                } else {
+                    const frames = document.querySelectorAll('iframe');
+                    for(let f of frames) {
+                        try {
+                            if(f.contentDocument === doc) { iframeOffsetTop = f.getBoundingClientRect().top; break; }
+                        } catch(e){}
+                    }
+                }
+
+                const viewerElem = document.getElementById('viewer');
+                const viewerRect = viewerElem ? viewerElem.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+
+                for (let node of allTextNodes) {
+                    const range = doc.createRange();
+                    range.selectNodeContents(node);
+                    const rect = range.getBoundingClientRect();
+                    
+                    const absoluteTop = iframeOffsetTop + rect.top;
+                    
+                    if (absoluteTop >= viewerRect.top + 20 && absoluteTop <= viewerRect.bottom && node.textContent.trim().length > 0) {
+                        startNode = node;
+                        activeContents = contents;
+                        break;
+                    }
+                }
+                if (startNode) break; 
+            }
+
+            if (startNode && activeContents) {
+                startTTSFromNode(activeContents, startNode, 0);
+            }
+        };
+
+        ttsBtn?.addEventListener('click', () => {
+            if (ttsActive) {
+                stopTTS();
+            } else {
+                window.speechSynthesis.cancel();
+                const unlock = new SpeechSynthesisUtterance('');
+                unlock.volume = 0;
+                window.speechSynthesis.speak(unlock);
+                
+                setTimeout(async () => {
+                    await startTTSFromTop();
+                }, 50);
+            }
+        });
+
+
+        // --- Restored Highlighting (Manual) ---
+        const highlightsKey = `liberatica-highlights-${bookName}`;
+        let storedHighlights = JSON.parse(localStorage.getItem(highlightsKey) || "[]");
+        let highlightToDelete = null;
+
+        const showConfirm = (cfi) => { 
+            highlightToDelete = cfi; 
+            const modal = document.getElementById("confirm-modal");
+            if (modal) modal.style.display = "block"; 
+        };
+        
+        document.getElementById("cancel-delete")?.addEventListener('click', () => {
+            const modal = document.getElementById("confirm-modal");
+            if (modal) modal.style.display = "none";
+        });
+        
+        document.getElementById("confirm-delete")?.addEventListener('click', () => {
+            if (highlightToDelete) {
+                rendition.annotations.remove(highlightToDelete, "highlight");
+                storedHighlights = storedHighlights.filter(h => h !== highlightToDelete);
+                localStorage.setItem(highlightsKey, JSON.stringify(storedHighlights));
+            }
+            const modal = document.getElementById("confirm-modal");
+            if (modal) modal.style.display = "none";
+        });
+
+        rendition.on("rendered", () => {
+          storedHighlights.forEach(cfi => rendition.annotations.add("highlight", cfi, {}, (e) => showConfirm(cfi), "epubjs-hl"));
+        });
+
+        let currentSelectionCfi = null;
+        let currentSelectionRange = null; 
+        let selectedText = "";
+        let activeSelectionContents = null;
+        let currentDictData = { def: null, thes: null, wikiHtml: null };
+
+        rendition.on("selected", (cfiRange, contents) => {
+          const sel = contents.window.getSelection();
+          if (sel.isTTSHighlight) return;
+          
+          currentSelectionCfi = cfiRange;
+          activeSelectionContents = contents;
+          selectedText = sel.toString().trim();
+          if (!selectedText) return;
+          
+          if (sel.rangeCount > 0) {
+              currentSelectionRange = sel.getRangeAt(0).cloneRange();
+          }
+
+          const rect = sel.getRangeAt(0).getBoundingClientRect();
+          const iframeRect = contents.window.frameElement.getBoundingClientRect();
+          
+          sel.removeAllRanges();
+          rendition.annotations.add("highlight", cfiRange, {}, null, "temp-selection-hl");
+          
+          if (selectionMenu) {
+              selectionMenu.style.display = "flex";
+              let left = iframeRect.left + rect.left + (rect.width / 2) - (selectionMenu.offsetWidth / 2);
+              let top = iframeRect.top + rect.top - selectionMenu.offsetHeight - 15;
+              if (top < 65) top = iframeRect.top + rect.bottom + 15; 
+              selectionMenu.style.left = `${Math.max(10, Math.min(left, window.innerWidth - selectionMenu.offsetWidth - 10))}px`;
+              selectionMenu.style.top = `${top}px`;
+          }
+          
+          const hideCustomMenu = (e) => { 
+              if (e && e.target && e.target.closest('#selection-menu')) return;
+              
+              if (selectionMenu) selectionMenu.style.display = "none"; 
+              rendition.annotations.remove(currentSelectionCfi, "highlight");
+              
+              contents.window.removeEventListener("mousedown", hideCustomMenu); 
+              contents.window.removeEventListener("touchstart", hideCustomMenu);
+              document.removeEventListener("mousedown", hideCustomMenu);
+              document.removeEventListener("touchstart", hideCustomMenu);
+              window.hideSelectionMenu = null;
+          };
+          
+          setTimeout(() => {
+              contents.window.addEventListener("mousedown", hideCustomMenu);
+              contents.window.addEventListener("touchstart", hideCustomMenu, {passive: true});
+              document.addEventListener("mousedown", hideCustomMenu);
+              document.addEventListener("touchstart", hideCustomMenu, {passive: true});
+          }, 100);
+          
+          window.hideSelectionMenu = hideCustomMenu;
+        });
+
+        readBtn?.addEventListener('click', () => {
+            window.speechSynthesis.cancel();
+            const unlock = new SpeechSynthesisUtterance('');
+            unlock.volume = 0;
+            window.speechSynthesis.speak(unlock);
+
+            setTimeout(() => {
+                if (activeSelectionContents && currentSelectionRange) {
+                    let node = currentSelectionRange.startContainer;
+                    if (node.nodeType !== Node.TEXT_NODE) {
+                        const walker = activeSelectionContents.document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
+                        node = walker.nextNode() || node;
+                    }
+                    if (node && node.nodeType === Node.TEXT_NODE) {
+                        startTTSFromNode(activeSelectionContents, node, currentSelectionRange.startOffset || 0);
+                    }
+                    if (window.hideSelectionMenu) window.hideSelectionMenu();
+                    activeSelectionContents.window.getSelection().removeAllRanges();
+                }
+            }, 50);
+        });
+
+        highlightBtn?.addEventListener('click', () => {
+          if (currentSelectionCfi) {
+            rendition.annotations.remove(currentSelectionCfi, "highlight");
+            rendition.annotations.add("highlight", currentSelectionCfi, {}, (e) => showConfirm(currentSelectionCfi), "epubjs-hl");
+            
+            storedHighlights.push(currentSelectionCfi);
+            localStorage.setItem(highlightsKey, JSON.stringify(storedHighlights));
+            if (window.hideSelectionMenu) window.hideSelectionMenu();
+          }
+        });
+
+        const renderDefinitions = () => {
+            if (!dictContent) return;
+            if (currentDictData.def && currentDictData.def.length > 0) {
+                dictContent.innerHTML = currentDictData.def.slice(0,3).map(e => `
+                    <div style="margin-bottom:20px;"><span class="mw-pos">${e.fl || ''}</span>
+                    ${(e.shortdef || []).map((d,i) => `<div class="mw-sense">${i+1}. ${d}</div>`).join('')}</div>
+                `).join('');
+            } else if (currentDictData.wikiHtml) {
+                dictContent.innerHTML = currentDictData.wikiHtml;
+            } else { dictContent.innerHTML = "No definition found."; }
+        };
+
+        const renderThesaurus = () => {
+            if (!dictContent) return;
+            if (!currentDictData.thes || currentDictData.thes.length === 0) { dictContent.innerHTML = "No synonyms found."; return; }
+            dictContent.innerHTML = currentDictData.thes.slice(0,2).map(e => `
+                <div style="margin-bottom:20px;"><span class="mw-pos">${e.fl || ''}</span>
+                <div style="font-size:14px; line-height:1.8;">${(e.meta?.syns?.[0] || []).slice(0,8).join(', ')}</div></div>
+            `).join('');
+        };
+
+        defineBtn?.addEventListener('click', async () => {
+            if (!selectedText) return;
+            if (window.hideSelectionMenu) window.hideSelectionMenu();
+            if (dictPanel) dictPanel.classList.add('open');
+            
+            const wordTextElem = document.getElementById('dict-word-text');
+            if (wordTextElem) wordTextElem.textContent = selectedText;
+            if (dictContent) dictContent.innerHTML = "Searching...";
+            
+            currentDictData = { def: null, thes: null, wikiHtml: null };
+            switchTab('def');
+            const clean = selectedText.split(/\s+/)[0].replace(/[^a-zA-Z]/g, '').toLowerCase();
+            try {
+                const [dRes, tRes] = await Promise.all([
+                    fetch(`https://dictionaryapi.com/api/v3/references/collegiate/json/${clean}?key=${DICT_KEY}`),
+                    fetch(`https://dictionaryapi.com/api/v3/references/thesaurus/json/${clean}?key=${THES_KEY}`)
+                ]);
+                const dData = await dRes.json();
+                const tData = await tRes.json();
+                if (dData.length > 0 && typeof dData[0] === 'string') throw new Error();
+                currentDictData.def = dData; currentDictData.thes = tData;
+                renderDefinitions();
+            } catch {
+                try {
+                    const wiki = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(selectedText.replace(/\s+/g, '_'))}`).then(r=>r.json());
+                    currentDictData.wikiHtml = `<div style="font-style:italic; opacity:0.6; margin-bottom:10px;">${wiki.description || ""}</div><div>${wiki.extract}</div>`;
+                    if (dictContent) dictContent.innerHTML = currentDictData.wikiHtml;
+                } catch { 
+                    if (dictContent) dictContent.innerHTML = "Not found."; 
+                }
+            }
+        });
+
+        function switchTab(t) {
+            document.querySelectorAll('.dict-tab').forEach(b => b.classList.toggle('active', b.dataset.target === t));
+            if (t === 'def') renderDefinitions(); else renderThesaurus();
+        }
+        
+        document.querySelectorAll('.dict-tab').forEach(b => {
+            b.addEventListener('click', () => switchTab(b.dataset.target));
+        });
+        
+        document.getElementById('close-dict')?.addEventListener('click', () => {
+            if (dictPanel) dictPanel.classList.remove('open');
+        });
+
+        // --- Font Sizing ---
+        const scale = (d) => {
+            const loc = rendition.currentLocation();
+            fontSize = Math.max(70, Math.min(180, fontSize + d));
+            rendition.themes.fontSize(fontSize + "%");
+            if (loc && loc.start) {
+              setTimeout(() => {
+                rendition.display(loc.start.cfi).then(() => {
+                    setTimeout(() => rendition.display(loc.start.cfi), 150);
+                });
+              }, 100);
+            }
+        };
+        document.getElementById("fontUp")?.addEventListener('click', () => scale(10));
+        document.getElementById("fontDown")?.addEventListener('click', () => scale(-10));
+
+        // --- NAVIGATION ---
+        const smartNavigate = (targetCfi) => {
+          stopTTS(); 
+          if (sidebar) sidebar.classList.remove('active');
+          if (overlay) overlay.classList.remove('active');
+          if (viewer) viewer.scrollTop = 0;
+          rendition.display(targetCfi).then(() => {
+            setTimeout(() => {
+              rendition.display(targetCfi).then(() => { if(viewer) viewer.scrollTop = 0; });
+            }, 150); 
+          });
+        };
+
+        book.loaded.navigation.then(toc => {
+          const list = document.getElementById('toc-list');
+          const build = (items, el) => items.forEach(c => {
+            const a = document.createElement('a');
+            a.textContent = c.label.trim();
+            a.dataset.href = c.href;
+            a.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                smartNavigate(c.href); 
+            });
+            el.appendChild(a);
+            if (c.subitems) build(c.subitems, el);
+          });
+          if (list) build(toc, list);
+        });
+
+        document.getElementById('toc-toggle')?.addEventListener('click', () => {
+            if (sidebar) sidebar.classList.add('active');
+            if (overlay) overlay.classList.add('active');
+        });
+        
+        overlay?.addEventListener('click', () => {
+            if (sidebar) sidebar.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+        });
+
+        // --- RESTORED RELOCATED TRACKING ---
+        rendition.on("relocated", (loc) => {
+          localStorage.setItem(`liberatica-pos-${bookName}`, loc.start.cfi);
+          const tocLinks = document.querySelectorAll('#toc-list a');
+          const currentHref = loc.start.href;
+          const currentFileName = currentHref.split('/').pop().split('#')[0];
+          
+          let matched = [...tocLinks].find(l => l.dataset.href.split('/').pop().split('#')[0] === currentFileName);
+          if (currentHref.includes('#')) {
+              const exactMatch = [...tocLinks].find(l => l.dataset.href.split('/').pop() === currentHref.split('/').pop());
+              if (exactMatch) matched = exactMatch;
+          }
+
+          if (matched) {
+              tocLinks.forEach(link => link.classList.remove('active-chapter'));
+              matched.classList.add('active-chapter');
+              matched.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+
+          if (book.locations.length() > 0) {
+            const locElem = document.getElementById('progress-location');
+            const pctElem = document.getElementById('progress-percent');
+            if (locElem) locElem.textContent = `Loc ${book.locations.locationFromCfi(loc.start.cfi)} of ${book.locations.total}`;
+            if (pctElem) pctElem.textContent = Math.floor(book.locations.percentageFromCfi(loc.start.cfi) * 100) + "%";
+          }
+        });
+
+        const saved = localStorage.getItem(`liberatica-pos-${bookName}`);
+        if (saved) rendition.display(saved).then(() => setTimeout(() => rendition.display(saved), 300));
+        setTimeout(() => book.locations.generate(1600), 2000);
+
+      } catch (err) { console.error(err); }
+    }
+    
+    // START APPLICATION
+    document.addEventListener("DOMContentLoaded", initReader);
+  </script>
+</body>
+</html>
