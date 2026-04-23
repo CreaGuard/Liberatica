@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- 🛑 AUTHENTICATION CHECK - MOVED TO TOP OF HEAD FOR INSTANT REDIRECT -->
+<!-- 🛑 AUTHENTICATION CHECK - MOVED TO TOP OF HEAD FOR INSTANT REDIRECT -->
   <script>
     if (localStorage.getItem("auth") !== "true") {
       window.location.replace("/login.html"); // .replace prevents them from using the back button to return
     }
   </script>
-
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -347,6 +347,7 @@
   </style>
 </head>
 <body>
+
   <!-- Centralized Global SVG Sprite Sheet for Maximum Code Reduction -->
   <svg style="display: none;">
     <defs>
