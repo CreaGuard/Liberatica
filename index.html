@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- 🛑 AUTHENTICATION CHECK - MOVED TO TOP OF HEAD FOR INSTANT REDIRECT -->
+  <script>
+    if (localStorage.getItem("auth") !== "true") {
+      window.location.replace("/login.html"); // .replace prevents them from using the back button to return
+    }
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-
   <title id="dynamic-title">Liberatica – Free Digital Library | Philosophy, Filmmaking, Design, Business & Request Books</title>
   
   <meta name="description" content="Liberatica is a free digital library offering curated books and PDFs in philosophy, filmmaking, design, and business. Request a book, read online, or download EPUBs." id="dynamic-description">
@@ -341,11 +347,6 @@
   </style>
 </head>
 <body>
-<script>
-if (localStorage.getItem("auth") !== "true") {
-  window.location.href = "/login.html";
-}
-</script>
   <!-- Centralized Global SVG Sprite Sheet for Maximum Code Reduction -->
   <svg style="display: none;">
     <defs>
@@ -778,12 +779,5 @@ if (localStorage.getItem("auth") !== "true") {
         backToTopBtn.onclick = () => window.scrollTo(0, 0);
     });
   </script>
-  <script>
-document.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("auth") !== "true") {
-    window.location.href = "/login.html";
-  }
-});
-</script>
 </body>
 </html>
