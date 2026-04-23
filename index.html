@@ -438,9 +438,7 @@
   <script>
     // AUTH GUARD — must be logged in to see this page
 (function() {
-  const ACCESS_STAMP = "v1"; // keep in sync with login.html
-  if (localStorage.getItem('liberatica_access') !== 'granted' || 
-      localStorage.getItem('liberatica_stamp') !== ACCESS_STAMP) {
+  if (localStorage.getItem('liberatica_access') !== 'granted') {
     window.location.replace('/login.html');
   }
 })();
