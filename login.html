@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
   <!-- Auto-skip login if already authenticated -->
-  <script>
-    const AUTH_KEY = "liberatica_auth";
-    if (localStorage.getItem(AUTH_KEY) === "1") {
-      window.location.replace("index.html");
-    }
-  </script>
+ <script>
+  const AUTH_KEY = "auth";
+  const AUTH_VALUE = "true";
+
+  if (localStorage.getItem(AUTH_KEY) === AUTH_VALUE) {
+    window.location.replace("./index.html");
+  }
+</script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
