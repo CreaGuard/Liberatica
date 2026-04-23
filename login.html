@@ -6,15 +6,15 @@
   <title>Liberatica — Access</title>
 
   <script>
-    // AUTO-SKIP: If the user is already authenticated, redirect them instantly
-    // preventing them from seeing the login screen again.
+    // AUTO-SKIP FIX: Strictly check ONLY the new key.
+    // Also, clear out the old keys that are causing the infinite loop ping-pong!
     try {
-      // Check for any of the historical access keys to ensure backwards compatibility
-      if (localStorage.getItem("liberatica_auth") === "1" || 
-          localStorage.getItem("liberatica_access") === "true" || 
-          localStorage.getItem("access_granted") === "yes") {
+      localStorage.removeItem("liberatica_access");
+      localStorage.removeItem("access_granted");
+
+      if (localStorage.getItem("liberatica_auth") === "1") {
         if (window.location.protocol !== 'about:' && window.location.protocol !== 'blob:' && window.location.protocol !== 'data:') {
-          window.location.replace("/index.html");
+          window.location.replace("/"); // Go strictly to root, bypassing /index.html Netlify quirks
         }
       }
     } catch(e) {}
@@ -767,17 +767,13 @@
     const val = pw.value.trim();
 
     if (val === ACCESS_PASSWORD) {
-      // Set the exact authentication key required by index.html
+      // STRICT FIX: Only set the required index.html key.
       localStorage.setItem('liberatica_auth', '1');
-      
-      // Set fallback keys in case index.html has older script versions cached
-      localStorage.setItem('liberatica_access', 'true');
-      localStorage.setItem('access_granted', 'yes');
       
       veil.classList.add('on');
       
       // Redirect securely to the absolute path
-      setTimeout(() => { window.location.replace('/index.html'); }, 2400);
+      setTimeout(() => { window.location.replace('/'); }, 2400);
     } else {
       errEl.classList.add('on');
       inputRow.classList.add('shaking');
