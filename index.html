@@ -438,8 +438,8 @@
   <script>
     // AUTH GUARD — must be logged in to see this page
 (function() {
-  const CURRENT_PASSWORD = "yournewpassword"; // keep this in sync with login.html
-  if (localStorage.getItem('liberatica_access') !== CURRENT_PASSWORD) {
+  const CURRENT_PASSWORD = "tathastu";
+if (localStorage.getItem('liberatica_access')?.toLowerCase() !== CURRENT_PASSWORD) {
     window.location.replace('/login.html');
   }
 })();
