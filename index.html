@@ -341,7 +341,11 @@
   </style>
 </head>
 <body>
-
+<script>
+if (localStorage.getItem("auth") !== "true") {
+  window.location.href = "/login.html";
+}
+</script>
   <!-- Centralized Global SVG Sprite Sheet for Maximum Code Reduction -->
   <svg style="display: none;">
     <defs>
