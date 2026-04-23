@@ -599,8 +599,7 @@
 })();
   // ┌────────────────────────────────────┐
   // │  CHANGE THIS TO YOUR OWN PASSWORD  │
-  const ACCESS_PASSWORD = "tathastu";
-  const ACCESS_STAMP = "v1"; // change this to kick everyone out
+  const ACCESS_PASSWORD = "Tathastu";
   // └────────────────────────────────────┘
 
   /* ── Rotating Quotes ── */
@@ -756,11 +755,10 @@
   const veil      = document.getElementById('veil');
 
   function tryLogin() {
-   const val = pw.value.trim().toLowerCase();
+    const val = pw.value.trim();
 
     if (val === ACCESS_PASSWORD) {
-     localStorage.setItem('liberatica_access', 'granted');
-localStorage.setItem('liberatica_stamp', ACCESS_STAMP);
+      localStorage.setItem('liberatica_access', 'granted');
       veil.classList.add('on');
       setTimeout(() => { window.location.href = '/index.html'; }, 2400);
     } else {
