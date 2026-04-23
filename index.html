@@ -3,20 +3,10 @@
 <head>
 <!-- 🛑 AUTHENTICATION CHECK - MOVED TO TOP OF HEAD FOR INSTANT REDIRECT -->
 <script>
-    try {
-      const AUTH_KEY = "liberatica_auth";
-      if (localStorage.getItem(AUTH_KEY) !== "1") {
-        // Prevent relative URL resolution errors in sandboxed iframes (like Canvas previews)
-        if (window.location.protocol !== 'about:' && window.location.protocol !== 'blob:' && window.location.protocol !== 'data:') {
-          window.location.replace("/login.html");
-        } else {
-          console.warn("Redirect to /login.html bypassed in preview environment.");
-        }
-      }
-    } catch (e) {
-      console.warn("Access check restricted by environment:", e);
-    }
-  </script>
+if (localStorage.getItem("auth") !== "true") {
+  window.location.href = "./login.html";
+}
+</script>
   
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
