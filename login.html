@@ -591,6 +591,12 @@
 </div>
 
 <script>
+  // Skip login if already authenticated
+(function() {
+  if (localStorage.getItem('liberatica_access') === 'granted') {
+    window.location.replace('/index.html');
+  }
+})();
   // ┌────────────────────────────────────┐
   // │  CHANGE THIS TO YOUR OWN PASSWORD  │
   const ACCESS_PASSWORD = "Tathastu";
