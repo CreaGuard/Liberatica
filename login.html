@@ -738,44 +738,23 @@
     // AUTHENTICATION LOGIC
     // ----------------------------------------------------
 
-    const submitBtn = document.getElementById("submitBtn");
-    const err = document.getElementById("err");
-    const inputRow = document.getElementById("inputRow");
-    const veil = document.getElementById("veil");
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const val = document.getElementById("pw").value;
 
-    submitBtn.addEventListener("click", () => {
-      const enteredPassword = input.value.trim();
+      console.log("INPUT:", val);
 
-      console.log("Entered:", enteredPassword);
-
-      if (enteredPassword === ACCESS_PASSWORD) {
-        console.log("CORRECT PASSWORD");
+      if (val === "Tathastu") {
+        console.log("MATCH SUCCESS");
 
         localStorage.setItem("auth", "true");
 
-        console.log("Saved:", localStorage.getItem("auth"));
+        console.log("STORED:", localStorage.getItem("auth"));
 
-        veil.classList.add('on');
-
-        setTimeout(() => { 
-          window.location.href = "/index.html"; 
-        }, 2400);
+        window.location.href = "/index.html";
 
       } else {
         console.log("WRONG PASSWORD");
-
-        err.classList.add("on");
-        inputRow.classList.add("shaking");
-        input.value = '';
-
-        setTimeout(() => inputRow.classList.remove("shaking"), 550);
       }
-    });
-
-    // Optional but good for UX: Let the Enter key trigger the submit click
-    input.addEventListener("keydown", (e) => {
-      err.classList.remove("on");
-      if (e.key === "Enter") submitBtn.click();
     });
 
   });
