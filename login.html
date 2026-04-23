@@ -599,7 +599,7 @@
 })();
   // ┌────────────────────────────────────┐
   // │  CHANGE THIS TO YOUR OWN PASSWORD  │
-  const ACCESS_PASSWORD = "Tathastu";
+  const ACCESS_PASSWORD = "TATHASTU";
   // └────────────────────────────────────┘
 
   /* ── Rotating Quotes ── */
@@ -758,7 +758,7 @@
     const val = pw.value.trim();
 
     if (val === ACCESS_PASSWORD) {
-      localStorage.setItem('liberatica_access', 'granted');
+      localStorage.setItem('liberatica_access', ACCESS_PASSWORD);
       veil.classList.add('on');
       setTimeout(() => { window.location.href = '/index.html'; }, 2400);
     } else {
