@@ -600,6 +600,7 @@
   // ┌────────────────────────────────────┐
   // │  CHANGE THIS TO YOUR OWN PASSWORD  │
   const ACCESS_PASSWORD = "tathastu";
+  const ACCESS_STAMP = "v1"; // change this to kick everyone out
   // └────────────────────────────────────┘
 
   /* ── Rotating Quotes ── */
@@ -758,7 +759,8 @@
    const val = pw.value.trim().toLowerCase();
 
     if (val === ACCESS_PASSWORD) {
-      localStorage.setItem('liberatica_access', ACCESS_PASSWORD);
+     localStorage.setItem('liberatica_access', 'granted');
+localStorage.setItem('liberatica_stamp', ACCESS_STAMP);
       veil.classList.add('on');
       setTimeout(() => { window.location.href = '/index.html'; }, 2400);
     } else {
