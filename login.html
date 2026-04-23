@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Auto-skip login if already authenticated -->
+  <script>
+    const AUTH_KEY = "liberatica_auth";
+    if (localStorage.getItem(AUTH_KEY) === "1") {
+      window.location.replace("index.html");
+    }
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Liberatica — Access</title>
@@ -738,48 +746,40 @@
     // AUTHENTICATION LOGIC
     // ----------------------------------------------------
 
-    const submitBtn = document.getElementById("submitBtn");
-    const err = document.getElementById("err");
-    const inputRow = document.getElementById("inputRow");
-    const veil = document.getElementById("veil");
+    const AUTH_KEY = "liberatica_auth";
+    const ACCESS_PASSWORD = "Tathastu";
 
-    submitBtn.addEventListener("click", (e) => {
+    document.getElementById("submitBtn").addEventListener("click", (e) => {
       e.preventDefault(); // Prevents accidental page reload from button click
-      const val = input.value.trim();
+      const inputVal = document.getElementById("pw").value.trim();
 
-      console.log("INPUT:", val);
+      if (inputVal === ACCESS_PASSWORD) {
+        localStorage.setItem(AUTH_KEY, "1"); // ✅ SAVE CORRECT KEY
 
-      if (val === ACCESS_PASSWORD) {
-        console.log("MATCH SUCCESS");
+        document.getElementById("veil").classList.add("on");
 
-        localStorage.setItem("auth", "true");
-
-        console.log("STORED:", localStorage.getItem("auth"));
-
-        veil.classList.add('on');
-
-        setTimeout(() => { 
+        setTimeout(() => {
           // IMPORTANT: Relative path for GitHub Pages compatibility!
-          window.location.href = "index.html"; 
-        }, 2400);
+          window.location.href = "index.html"; // ✅ REDIRECT
+        }, 1200);
 
       } else {
-        console.log("WRONG PASSWORD");
-
-        err.classList.add("on");
+        document.getElementById("err").classList.add("on");
+        
+        // Retained visual shake feedback on error
+        const inputRow = document.getElementById("inputRow");
         inputRow.classList.add("shaking");
-        input.value = '';
-
+        document.getElementById("pw").value = '';
         setTimeout(() => inputRow.classList.remove("shaking"), 550);
       }
     });
 
     // Let the Enter key trigger the submit click
     input.addEventListener("keydown", (e) => {
-      err.classList.remove("on");
+      document.getElementById("err").classList.remove("on");
       if (e.key === "Enter") {
         e.preventDefault(); // Prevent accidental form submissions
-        submitBtn.click();
+        document.getElementById("submitBtn").click();
       }
     });
 
