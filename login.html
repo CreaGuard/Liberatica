@@ -599,7 +599,7 @@
 })();
   // ┌────────────────────────────────────┐
   // │  CHANGE THIS TO YOUR OWN PASSWORD  │
-  const ACCESS_PASSWORD = "TATHASTU";
+  const ACCESS_PASSWORD = "tathastu";
   // └────────────────────────────────────┘
 
   /* ── Rotating Quotes ── */
@@ -755,7 +755,7 @@
   const veil      = document.getElementById('veil');
 
   function tryLogin() {
-    const val = pw.value.trim();
+   const val = pw.value.trim().toLowerCase();
 
     if (val === ACCESS_PASSWORD) {
       localStorage.setItem('liberatica_access', ACCESS_PASSWORD);
