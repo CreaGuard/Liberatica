@@ -738,22 +738,48 @@
     // AUTHENTICATION LOGIC
     // ----------------------------------------------------
 
-    document.getElementById("submitBtn").addEventListener("click", () => {
-      const val = document.getElementById("pw").value;
+    const submitBtn = document.getElementById("submitBtn");
+    const err = document.getElementById("err");
+    const inputRow = document.getElementById("inputRow");
+    const veil = document.getElementById("veil");
+
+    submitBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevents accidental page reload from button click
+      const val = input.value.trim();
 
       console.log("INPUT:", val);
 
-      if (val === "Tathastu") {
+      if (val === ACCESS_PASSWORD) {
         console.log("MATCH SUCCESS");
 
         localStorage.setItem("auth", "true");
 
         console.log("STORED:", localStorage.getItem("auth"));
 
-        window.location.href = "/index.html";
+        veil.classList.add('on');
+
+        setTimeout(() => { 
+          // IMPORTANT: Relative path for GitHub Pages compatibility!
+          window.location.href = "index.html"; 
+        }, 2400);
 
       } else {
         console.log("WRONG PASSWORD");
+
+        err.classList.add("on");
+        inputRow.classList.add("shaking");
+        input.value = '';
+
+        setTimeout(() => inputRow.classList.remove("shaking"), 550);
+      }
+    });
+
+    // Let the Enter key trigger the submit click
+    input.addEventListener("keydown", (e) => {
+      err.classList.remove("on");
+      if (e.key === "Enter") {
+        e.preventDefault(); // Prevent accidental form submissions
+        submitBtn.click();
       }
     });
 
