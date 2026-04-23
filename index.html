@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script>
-    if (localStorage.getItem("Tathastu") !== "true") {
-      window.location.href = "/login.html";
-    }
-  </script>
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("auth") !== "true") {
+    window.location.href = "/login.html";
+  }
+});
+</script>
 
   <title id="dynamic-title">Liberatica – Free Digital Library | Philosophy, Filmmaking, Design, Business & Request Books</title>
   
