@@ -9,9 +9,12 @@
     // AUTO-SKIP: If the user is already authenticated, redirect them instantly
     // preventing them from seeing the login screen again.
     try {
-      if (localStorage.getItem("liberatica_auth") === "1") {
+      // Check for any of the historical access keys to ensure backwards compatibility
+      if (localStorage.getItem("liberatica_auth") === "1" || 
+          localStorage.getItem("liberatica_access") === "true" || 
+          localStorage.getItem("access_granted") === "yes") {
         if (window.location.protocol !== 'about:' && window.location.protocol !== 'blob:' && window.location.protocol !== 'data:') {
-          window.location.replace("/");
+          window.location.replace("/index.html");
         }
       }
     } catch(e) {}
@@ -767,10 +770,14 @@
       // Set the exact authentication key required by index.html
       localStorage.setItem('liberatica_auth', '1');
       
+      // Set fallback keys in case index.html has older script versions cached
+      localStorage.setItem('liberatica_access', 'true');
+      localStorage.setItem('access_granted', 'yes');
+      
       veil.classList.add('on');
       
-      // Redirect securely using replace() so they can't hit the back button
-      setTimeout(() => { window.location.replace('/'); }, 2400);
+      // Redirect securely to the absolute path
+      setTimeout(() => { window.location.replace('/index.html'); }, 2400);
     } else {
       errEl.classList.add('on');
       inputRow.classList.add('shaking');
