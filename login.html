@@ -594,6 +594,9 @@
   const ACCESS_PASSWORD = "Tathastu";
 
   document.addEventListener("DOMContentLoaded", () => {
+    // Define input at the very top so it's available globally inside this scope
+    const input = document.getElementById("pw");
+
     // ----------------------------------------------------
     // BACKGROUND ANIMATIONS & UX (Quotes, Dust, Typing)
     // ----------------------------------------------------
@@ -719,7 +722,6 @@
     }
     setTimeout(typePlaceholder, 2200);
 
-    const input = document.getElementById("pw");
     input.addEventListener('focus', () => {
       clearTimeout(typeTimeout);
       input.placeholder = '';
@@ -744,20 +746,28 @@
     submitBtn.addEventListener("click", () => {
       const enteredPassword = input.value.trim();
 
+      console.log("Entered:", enteredPassword);
+
       if (enteredPassword === ACCESS_PASSWORD) {
+        console.log("CORRECT PASSWORD");
+
         localStorage.setItem("auth", "true");
-        
-        console.log("LOGIN SUCCESS, AUTH SET:", localStorage.getItem("auth"));
-        
-        // Show the smooth cinematic transition, then load main page
+
+        console.log("Saved:", localStorage.getItem("auth"));
+
         veil.classList.add('on');
-        setTimeout(() => { window.location.href = "/index.html"; }, 2400);
+
+        setTimeout(() => { 
+          window.location.href = "/index.html"; 
+        }, 2400);
 
       } else {
+        console.log("WRONG PASSWORD");
+
         err.classList.add("on");
         inputRow.classList.add("shaking");
-        // Clear value and remove shaking class so it works again next try
         input.value = '';
+
         setTimeout(() => inputRow.classList.remove("shaking"), 550);
       }
     });
