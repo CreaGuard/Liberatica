@@ -5,21 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Liberatica — Access</title>
 
-  <script>
-    // AUTO-SKIP FIX: Strictly check ONLY the new key.
-    // Also, clear out the old keys that are causing the infinite loop ping-pong!
-    try {
-      localStorage.removeItem("liberatica_access");
-      localStorage.removeItem("access_granted");
-
-      if (localStorage.getItem("liberatica_auth") === "1") {
-        if (window.location.protocol !== 'about:' && window.location.protocol !== 'blob:' && window.location.protocol !== 'data:') {
-          window.location.replace("/"); // Go strictly to root, bypassing /index.html Netlify quirks
-        }
-      }
-    } catch(e) {}
-  </script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -767,13 +752,9 @@
     const val = pw.value.trim();
 
     if (val === ACCESS_PASSWORD) {
-      // STRICT FIX: Only set the required index.html key.
-      localStorage.setItem('liberatica_auth', '1');
-      
+      localStorage.setItem('liberatica_access', 'granted');
       veil.classList.add('on');
-      
-      // Redirect securely to the absolute path
-      setTimeout(() => { window.location.replace('/'); }, 2400);
+      setTimeout(() => { window.location.href = '/index.html'; }, 2400);
     } else {
       errEl.classList.add('on');
       inputRow.classList.add('shaking');
