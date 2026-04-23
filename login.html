@@ -752,7 +752,9 @@
     const val = pw.value.trim();
 
     if (val === ACCESS_PASSWORD) {
-      localStorage.setItem('Tathastu', 'true');
+      // ✅ THIS IS THE MISSING LINE (Updated to 'auth')
+      localStorage.setItem('auth', 'true');
+      
       veil.classList.add('on');
       setTimeout(() => { window.location.href = '/index.html'; }, 2400);
     } else {
