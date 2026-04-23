@@ -3,18 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-  <script>
-  try {
-    const AUTH_KEY = "liberatica_auth";
-    if (localStorage.getItem(AUTH_KEY) !== "1") {
-      if (window.location.protocol !== 'about:' && window.location.protocol !== 'blob:' && window.location.protocol !== 'data:') {
-        window.location.replace("/login.html");
-      }
-    }
-  } catch (e) {}
-</script>
-  
+ 
   <title id="dynamic-title">Liberatica – Free Digital Library | Philosophy, Filmmaking, Design, Business & Request Books</title>
   
   <meta name="description" content="Liberatica is a free digital library offering curated books and PDFs in philosophy, filmmaking, design, and business. Request a book, read online, or download EPUBs." id="dynamic-description">
@@ -447,6 +436,12 @@
   </div>
 
   <script>
+    // AUTH GUARD — must be logged in to see this page
+(function() {
+  if (localStorage.getItem('liberatica_access') !== 'granted') {
+    window.location.replace('/login.html');
+  }
+})();
     document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector('.container'), bookGrid = document.getElementById('book-grid');
         const loadMoreBtn = document.getElementById('load-more-btn'), backToTopBtn = document.getElementById('back-to-top');
