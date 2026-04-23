@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Auto-skip login if already authenticated -->
-  <script>
-    if (localStorage.getItem("auth") === "true") {
-      window.location.replace("/index.html");
-    }
-  </script>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Liberatica — Access</title>
@@ -740,7 +733,7 @@
     });
 
     // ----------------------------------------------------
-    // AUTHENTICATION LOGIC (Requested changes integrated)
+    // AUTHENTICATION LOGIC
     // ----------------------------------------------------
 
     const submitBtn = document.getElementById("submitBtn");
@@ -753,6 +746,8 @@
 
       if (enteredPassword === ACCESS_PASSWORD) {
         localStorage.setItem("auth", "true");
+        
+        console.log("LOGIN SUCCESS, AUTH SET:", localStorage.getItem("auth"));
         
         // Show the smooth cinematic transition, then load main page
         veil.classList.add('on');
