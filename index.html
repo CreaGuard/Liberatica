@@ -39,8 +39,8 @@
     }
   }
   </script>
-  
-   // AUTH GUARD — must be logged in to see this page
+   
+  // AUTH GUARD — must be logged in to see this page
 (function() {
   if (localStorage.getItem('liberatica_access') !== 'granted') {
     window.location.replace('/login.html');
@@ -133,7 +133,7 @@
     #featured-book a.download { background: transparent; border: 1px solid var(--text-color); color: var(--text-color); }
     #featured-book a.download:hover { background: var(--text-color); color: var(--card-bg); }
 
-    .controls { max-width: 800px; margin: 0 auto 32px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: center; }
+    .controls { max-width: 800px; width: 100%; margin: 0 auto 32px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: center; }
     
     /* --- Modern Google-style Search Bar & Dropdown --- */
     .search-wrapper { position: relative; flex: 1; min-width: 200px; display: flex; }
@@ -167,7 +167,7 @@
 
     .recent-read-card {
         border-radius: 20px;
-        padding: 16px 24px;
+        padding: 28px 24px 20px 24px;
         display: flex;
         gap: 20px;
         align-items: center;
@@ -222,9 +222,10 @@
 
     .recent-cover-img {
         width: 56px;
-        height: 84px;
+        height: auto;
+        max-height: 90px;
         border-radius: 8px;
-        object-fit: contain;
+        object-fit: cover;
         box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         background-color: transparent;
         flex-shrink: 0;
@@ -245,13 +246,38 @@
     }
 
     .resume-label {
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
         font-family: 'Manrope', sans-serif;
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 4px;
         color: var(--accent-color);
-        margin: 0 0 4px 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        opacity: 0.8;
+        white-space: nowrap;
+    }
+
+    .resume-label::before,
+    .resume-label::after {
+        content: '';
+        width: 30px;
+        height: 1px;
+        background: currentColor;
+        opacity: 0.4;
+        transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+    }
+
+    .recent-read-card:hover .resume-label::before,
+    .recent-read-card:hover .resume-label::after {
+        width: 50px;
+        opacity: 0.8;
     }
 
     /* Single Line Adaptive Title */
@@ -269,12 +295,59 @@
         letter-spacing: 0.2px;
     }
 
-    .progress-label {
+    /* Out of the box Immersion Status */
+    .immersion-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        min-width: 0;
+    }
+
+    .eq-bar-container {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 10px;
+        flex-shrink: 0;
+    }
+
+    .eq-bar {
+        width: 3px;
+        height: 100%;
+        background-color: var(--accent-color);
+        border-radius: 2px;
+        transform-origin: bottom;
+        animation: eq-bounce 0.8s infinite alternate ease-in-out;
+    }
+
+    .eq-bar:nth-child(1) { transform: scaleY(0.4); animation-delay: 0.1s; }
+    .eq-bar:nth-child(2) { transform: scaleY(0.8); animation-delay: 0.3s; }
+    .eq-bar:nth-child(3) { transform: scaleY(0.5); animation-delay: 0.0s; }
+    .eq-bar:nth-child(4) { transform: scaleY(0.9); animation-delay: 0.4s; }
+
+    @keyframes eq-bounce {
+        0% { transform: scaleY(0.2); }
+        100% { transform: scaleY(1); }
+    }
+
+    .immersion-text {
         font-family: 'Manrope', sans-serif;
-        font-size: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
         color: var(--text-color);
         opacity: 0.6;
-        margin-top: 4px;
+        text-transform: uppercase;
+        transition: opacity 0.4s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+    
+    .immersion-text.fade-out {
+        opacity: 0 !important;
     }
 
     /* Circular Outline Play Button */
@@ -308,12 +381,15 @@
     }
 
     @media (max-width: 768px) {
-        #recent-read-section { margin-bottom: 32px; padding: 0 16px; }
-        .recent-read-card { padding: 12px 16px; gap: 12px; border-radius: 16px; }
-        .recent-cover-img { width: 48px; height: 72px; }
-        .resume-label { font-size: 9px; letter-spacing: 1px; }
+        #recent-read-section { margin-bottom: 32px; padding: 0; }
+        .recent-read-card { padding: 24px 16px 16px 16px; gap: 12px; border-radius: 16px; }
+        .recent-cover-img { width: 48px; height: auto; max-height: 76px; }
+        .resume-label { font-size: 9px; letter-spacing: 2px; top: 10px; gap: 8px; }
+        .resume-label::before, .resume-label::after { width: 16px; }
+        .recent-read-card:hover .resume-label::before,
+        .recent-read-card:hover .resume-label::after { width: 24px; }
         .recent-card-title { font-size: clamp(14px, 5cqw, 18px); }
-        .progress-label { font-size: 11px; }
+        .immersion-text { font-size: 9px; letter-spacing: 1px; }
         .resume-play-btn { width: 44px; height: 44px; border-width: 1px; }
         .resume-play-btn svg { width: 16px; height: 16px; margin-left: 2px; }
     }
@@ -419,7 +495,7 @@
     .related-book:hover img { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(200, 169, 126, 0.3); }
     .related-book span { display: none; }
 
-    .fab-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 16px; z-index: 99; }
+    .fab-container { position: fixed; bottom: 30px; right: max(16px, calc(50% - 400px)); display: flex; flex-direction: column; gap: 16px; z-index: 99; }
     .fab { background: var(--fab-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--text-color); border: 1px solid var(--fab-border); border-radius: 50%; width: 52px; height: 52px; cursor: pointer; box-shadow: 0 8px 32px rgba(0,0,0,0.1); opacity: 0; transform: translateY(100px); pointer-events: none; transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; justify-content: center; }
     .fab.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
     .fab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.3s ease; }
@@ -472,7 +548,7 @@
     .loader-text { font-family: 'Great Vibes', cursive; font-size: 40px; font-weight: 400; letter-spacing: 1px; color: var(--accent-color); margin: 0; opacity: 0; transform: translateY(10px); display: inline-block; clip-path: polygon(0 -50%, 0% -50%, 0% 150%, 0 150%); padding: 5px 15px; }
     .loader-overlay.active .loader-text { animation: textFadeUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.9s forwards, writeText 1.1s ease-in-out 0.9s forwards; }
     @keyframes textFadeUp { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
-    @keyframes writeText { 0% { clip-path: polygon(0 -50%, 0% -50%, 0% 150%, 0 150%); } 100% { clip-path: polygon(0 -50%, 110% -50%, 110% 150%, 0 150%); } }
+    @keyframes writeText { 0% { clip-path: polygon(0 -50%, 110% -50%, 110% 150%, 0 150%); } 100% { clip-path: polygon(0 -50%, 110% -50%, 110% 150%, 0 150%); } }
 
     @keyframes shimmer-load { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
     @keyframes shimmer-legacy { to { background-position-x: -200%; } }
@@ -574,7 +650,15 @@
         <div class="recent-card-info">
             <span class="resume-label">CONTINUE READING</span>
             <h3 id="recent-title" class="recent-card-title">...</h3>
-            <span class="progress-label">Progress &bull; 42%</span>
+            <div class="immersion-status">
+                <div class="eq-bar-container">
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                </div>
+                <span class="immersion-text" id="immersion-dynamic-text">Loading...</span>
+            </div>
         </div>
         <button class="resume-play-btn" aria-label="Resume Reading">
             <svg viewBox="0 0 20 20"><path d="M6 4L15 10L6 16V4Z" /></svg>
@@ -639,10 +723,12 @@
         let allBooks = [], currentRenderedBooks = [], booksDisplayed = 0;
         const BOOKS_PER_BATCH = 24;
         const RECENT_BOOK_KEY = 'liberatica_recent_v3';
+        const RECENT_TIME_KEY = 'liberatica_recent_time_v3';
 
         // --- CONTINUE READING LOGIC ---
         window.saveRecentRead = (id) => {
             localStorage.setItem(RECENT_BOOK_KEY, id);
+            localStorage.setItem(RECENT_TIME_KEY, Date.now());
             const book = allBooks.find(b => b.id == id);
             if (book) showRecentRead(book);
         };
@@ -654,6 +740,39 @@
             const title = document.getElementById('recent-title');
 
             if (!section || !card || !cover || !title) return;
+
+            // Setup Text Cycling Logic
+            const immersionStatuses = ["Left Unfinished", "Still Waiting", "Not Finished", "Pick Up", "Continue Now", "Resume Story", "Come Back"];
+            const randStatus = immersionStatuses[Math.floor(Math.random() * immersionStatuses.length)];
+            const textElement = document.getElementById('immersion-dynamic-text');
+            textElement.textContent = randStatus;
+
+            const getTimeAgoString = () => {
+                let savedTime = localStorage.getItem(RECENT_TIME_KEY);
+                // Backfill for older saved sessions that don't have a time attached
+                if (!savedTime) {
+                    savedTime = Date.now().toString();
+                    localStorage.setItem(RECENT_TIME_KEY, savedTime);
+                }
+                const diffMins = Math.floor((Date.now() - parseInt(savedTime, 10)) / 60000);
+                if (diffMins < 1) return "Last read just now";
+                if (diffMins < 60) return `Last read ${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+                const diffHrs = Math.floor(diffMins / 60);
+                if (diffHrs < 24) return `Last read ${diffHrs} hr${diffHrs > 1 ? 's' : ''} ago`;
+                const diffDays = Math.floor(diffHrs / 24);
+                return `Last read ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            };
+
+            if (window.immersionCycleId) clearInterval(window.immersionCycleId);
+            let showingTime = false;
+            window.immersionCycleId = setInterval(() => {
+                textElement.classList.add('fade-out');
+                setTimeout(() => {
+                    showingTime = !showingTime;
+                    textElement.textContent = showingTime ? getTimeAgoString() : randStatus;
+                    textElement.classList.remove('fade-out');
+                }, 400); 
+            }, 5000);
 
             cover.src = book.Cover_url;
             title.textContent = book.Title;
