@@ -1260,7 +1260,18 @@
 
         // --- RESTORED RELOCATED TRACKING ---
         rendition.on("relocated", (loc) => {
-          localStorage.setItem(`liberatica-pos-${bookName}`, loc.start.cfi);
+  localStorage.setItem(`liberatica-pos-${bookName}`, loc.start.cfi);
+
+  // 🔥 ADD THIS
+  if (book.locations && book.locations.length() > 0) {
+    const progress = book.locations.percentageFromCfi(loc.start.cfi);
+
+    localStorage.setItem('liberatica-progress', progress);
+
+    // also sync last read (important)
+    localStorage.setItem('liberatica_recent_v3', bookId);
+  }
+});
           const tocLinks = document.querySelectorAll('#toc-list a');
           const currentHref = loc.start.href;
           const currentFileName = currentHref.split('/').pop().split('#')[0];
