@@ -412,7 +412,9 @@
 
     // ===== URL PARAMS =====
   const urlParams = new URLSearchParams(window.location.search);
-const bookId = urlParams.get("id");
+
+const bookId = urlParams.get("id");          // for tracking
+const bookUrlRaw = urlParams.get("book");    // 🔥 THIS WAS MISSING
 
     // Backward compatibility for basic filename inputs
     let bookUrl = bookUrlRaw;
