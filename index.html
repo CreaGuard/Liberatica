@@ -147,8 +147,29 @@
     #category-btn-mobile { display: flex; align-items: center; justify-content: center; background: var(--search-bg); width: 52px; height: 52px; flex-shrink: 0; }
     #category-btn-mobile svg { stroke: var(--text-color); fill: none; width: 22px; height: 22px; }
     
-    #requestBookBtn { background: var(--text-color); color: var(--card-bg); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; border: none; }
-    #requestBookBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow-color); }
+  #requestBookBtn { 
+  background: var(--search-bg); 
+  color: var(--text-color); 
+  border: 1px solid var(--card-border);
+  padding: 0 24px; 
+  height: 52px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  font-family: 'Manrope', sans-serif; 
+  font-size: 14px; 
+  font-weight: 500; 
+  letter-spacing: 1px; 
+  text-transform: uppercase;
+  box-shadow: 0 4px 16px var(--shadow-color);
+}
+#requestBookBtn:hover { 
+  border-color: var(--accent-color); 
+  color: var(--accent-color);
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 24px var(--shadow-color); 
+}
 
     /* --- DEDICATED CONTINUE READING SECTION (Glass Mosaic Redesign) --- */
     #recent-read-section {
