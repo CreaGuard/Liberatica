@@ -411,10 +411,8 @@
     }
 
     // ===== URL PARAMS =====
-  const urlParams = new URLSearchParams(window.location.search);
-
-const bookId = urlParams.get("id");          // for tracking
-const bookUrlRaw = urlParams.get("book");    // 🔥 THIS WAS MISSING
+    const params = new URLSearchParams(window.location.search);
+    const bookUrlRaw = params.get("book");
 
     // Backward compatibility for basic filename inputs
     let bookUrl = bookUrlRaw;
@@ -1262,24 +1260,7 @@ const bookUrlRaw = urlParams.get("book");    // 🔥 THIS WAS MISSING
 
         // --- RESTORED RELOCATED TRACKING ---
         rendition.on("relocated", (loc) => {
- // save reading position
-localStorage.setItem(`liberatica-pos-${bookId}`, loc.start.cfi);
-
-if (book.locations && book.locations.length() > 0) {
-    const progress = book.locations.percentageFromCfi(loc.start.cfi);
-
-    // 🔥 important safety check
-    if (!isNaN(progress)) {
-    const last = localStorage.getItem(`liberatica-progress-${bookId}`);
-
-    // only save if progress actually changed
-    if (last === null || Math.abs(progress - last) > 0.01) {
-        localStorage.setItem(`liberatica-progress-${bookId}`, progress);
-        localStorage.setItem('liberatica_recent_v3', bookId);
-    }
-}
-}
-});
+          localStorage.setItem(`liberatica-pos-${bookName}`, loc.start.cfi);
           const tocLinks = document.querySelectorAll('#toc-list a');
           const currentHref = loc.start.href;
           const currentFileName = currentHref.split('/').pop().split('#')[0];
