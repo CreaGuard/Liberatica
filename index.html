@@ -40,6 +40,13 @@
   }
   </script>
   
+   // AUTH GUARD — must be logged in to see this page
+(function() {
+  if (localStorage.getItem('liberatica_access') !== 'granted') {
+    window.location.replace('/login.html');
+  }
+})();
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Great+Vibes&family=Inter:wght@400;500&family=Manrope:wght@400;500;700;800&display=swap">
@@ -492,11 +499,15 @@
         .book-card.is-loading { background: transparent; box-shadow: none; }
         .book-card.is-loading .image-placeholder { height: auto; aspect-ratio: 2/3; border-radius: 8px; background-color: var(--category-border); border: none;}
         .palette-overlay { padding-top: 2vh; } .command-palette { max-height: 90vh; border-radius: 20px; }
-        .palette-detail-view { padding: 24px 20px 16px 20px; }
-        .palette-detail-top { flex-direction: column; align-items: center; text-align: center; gap: 24px; }
-        .palette-detail-info { text-align: center; }
-        .palette-detail-info h2 { font-size: 24px; }
-        .palette-teaser-container { font-size: 15px; padding: 16px; max-height: 180px; margin-top: 16px; }
+        .palette-detail-view { padding: 16px 20px 12px 20px; }
+        .palette-detail-top { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+        .palette-detail-cover { width: 120px; }
+        .palette-detail-info { text-align: center; width: 100%; min-width: 0; }
+        .palette-detail-info h2 { font-size: clamp(16px, 6vw, 24px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .palette-detail-info p { margin: 6px 0 16px; font-size: 13px; }
+        .palette-teaser-container { font-size: 14px; padding: 12px 16px; max-height: 120px; margin-top: 12px; }
+        .related-books { margin-top: 16px; padding-top: 16px; }
+        .related-books h4 { margin: 0 0 12px; }
         .related-books-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .related-book:nth-child(n+4) { display: none; }
     }
@@ -617,12 +628,6 @@
   </div>
 
   <script>
-     // AUTH GUARD — must be logged in to see this page
-(function() {
-  if (localStorage.getItem('liberatica_access') !== 'granted') {
-    window.location.replace('/login.html');
-  }
-})();
             document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector('.container'), bookGrid = document.getElementById('book-grid');
         const loadMoreBtn = document.getElementById('load-more-btn'), backToTopBtn = document.getElementById('back-to-top');
@@ -647,38 +652,15 @@
             const card = document.getElementById('recent-read-card');
             const cover = document.getElementById('recent-cover');
             const title = document.getElementById('recent-title');
-            const progressEl = document.querySelector('.progress-label');
-          
-           if (!section || !card || !cover || !title || !progressEl) return;
+
+            if (!section || !card || !cover || !title) return;
 
             cover.src = book.Cover_url;
             title.textContent = book.Title;
-          const progress = localStorage.getItem(`liberatica-progress-${book.id}`);
-
-if (progress === null) {
-    // no reading yet
-    progressEl.textContent = 'Start Reading';
-} else {
-    const percent = Math.floor(progress * 100);
-
-    if (isNaN(percent)) {
-        // system not ready / rare case
-        progressEl.textContent = 'Calculating...';
-    } 
-    else if (percent <= 5) {
-        progressEl.textContent = 'Just Started';
-    } 
-    else if (percent >= 95) {
-        progressEl.textContent = 'Finished';
-    } 
-    else {
-        progressEl.textContent = `Progress • ${percent}%`;
-    }
-}
             section.style.display = 'block';
             
             card.onclick = () => {
-                window.location.href = `/reader.html?id=${book.id}&book=${encodeURIComponent(book.pdf_url)}&title=${encodeURIComponent(book.Title)}`;
+                window.location.href = `/reader.html?book=${encodeURIComponent(book.pdf_url)}&title=${encodeURIComponent(book.Title)}`;
             };
         }
 
