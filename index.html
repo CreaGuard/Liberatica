@@ -148,99 +148,84 @@
     #requestBookBtn { background: var(--text-color); color: var(--card-bg); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; border: none; }
     #requestBookBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow-color); }
 
-    /* --- DEDICATED CONTINUE READING SECTION (Editorial Glass Redesign) --- */
+    /* --- DEDICATED CONTINUE READING SECTION (Glass Mosaic Redesign) --- */
     #recent-read-section {
         display: none;
         max-width: 800px;
-        margin: 0 auto 52px auto;
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0 auto 40px auto;
         animation: fadeInDown 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .recent-section-header {
-        font-family: 'Manrope', sans-serif;
-        font-size: 10px;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        color: var(--accent-color);
-        font-weight: 800;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        opacity: 0.8;
-    }
-
-    .recent-section-header svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.5px; }
-
     .recent-read-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border-radius: 32px;
-        padding: 24px 36px;
+        border-radius: 20px;
+        padding: 16px 24px;
         display: flex;
-        gap: 36px;
+        gap: 20px;
         align-items: center;
-        /* Layered Metallic Edge Light Border */
-        box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.05),
-            inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-            inset 0 0 0 2px rgba(200, 169, 126, 0.12);
+        width: 100%;
+        box-sizing: border-box;
         cursor: pointer;
-        transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         overflow: hidden;
-    }
-
-    /* Metallic Shimmer Overlay */
-    .recent-read-card::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        padding: 1px; 
-        border-radius: 32px; 
-        background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(200, 169, 126, 0.6) 50%, rgba(255,255,255,0.05) 100%); 
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        pointer-events: none;
-        opacity: 0.4;
-        transition: opacity 0.5s ease;
+        /* Glass Mosaic Aesthetic Base */
+        background-color: var(--card-bg);
+        background-image: 
+            linear-gradient(120deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.02) 100%),
+            radial-gradient(circle at 10% 10%, rgba(200, 169, 126, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 90% 90%, rgba(200, 169, 126, 0.04) 0%, transparent 30%),
+            url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.04"/></svg>');
+        backdrop-filter: blur(24px) saturate(150%);
+        -webkit-backdrop-filter: blur(24px) saturate(150%);
+        border: 1px solid rgba(200, 169, 126, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
     .recent-read-card:hover {
-        transform: translateY(-10px) scale(1.005);
-        background: rgba(255, 255, 255, 0.07);
+        transform: translateY(-4px) scale(1.01);
         box-shadow: 
-            0 40px 80px rgba(0, 0, 0, 0.12),
-            inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-            0 0 30px rgba(200, 169, 126, 0.2);
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+            inset 0 0 15px rgba(200, 169, 126, 0.15),
+            0 0 24px rgba(200, 169, 126, 0.2);
+        border-color: rgba(200, 169, 126, 0.5);
     }
 
-    .recent-read-card:hover::after { opacity: 1; }
-
     body.dark-mode .recent-read-card {
-        background: rgba(255, 255, 255, 0.02);
+        background-color: rgba(20, 20, 20, 0.4);
+        background-image: 
+            linear-gradient(120deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%),
+            radial-gradient(circle at 0% 0%, rgba(200, 169, 126, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 100% 100%, rgba(200, 169, 126, 0.1) 0%, transparent 40%),
+            url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>');
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    body.dark-mode .recent-read-card:hover {
+        background-color: rgba(30, 30, 30, 0.5);
         box-shadow: 
-            0 25px 60px rgba(0, 0, 0, 0.4),
-            inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-            inset 0 0 0 2px rgba(200, 169, 126, 0.06);
+            0 30px 60px rgba(0, 0, 0, 0.5),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+            inset 0 0 20px rgba(200, 169, 126, 0.25),
+            0 0 40px rgba(200, 169, 126, 0.3);
     }
 
     .recent-cover-img {
-        width: 80px;
-        height: 120px;
-        border-radius: 14px;
-        object-fit: cover;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.35);
+        width: 56px;
+        height: 84px;
+        border-radius: 8px;
+        object-fit: contain;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         background-color: transparent;
         flex-shrink: 0;
-        transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .recent-read-card:hover .recent-cover-img {
-        transform: scale(1.1) rotate(-3deg);
+        transform: scale(1.08) rotate(-3deg);
     }
 
     .recent-card-info {
@@ -248,69 +233,82 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 6px;
+        min-width: 0; /* allows flex items to shrink below minimum content size for ellipsis */
+        container-type: inline-size;
     }
 
-    /* Modern Thin Book Name Font */
-    .recent-card-title {
-        font-family: 'Manrope', sans-serif;
-        font-size: 28px;
-        font-weight: 400; /* Thin look */
-        color: var(--text-color);
-        line-height: 1.25;
-        margin: 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        letter-spacing: 0.2px;
-    }
-
-    /* Editorial Font Aesthetic for Resume Word */
     .resume-label {
         font-family: 'Manrope', sans-serif;
         font-size: 11px;
-        font-weight: 500;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 5px;
+        letter-spacing: 2px;
         color: var(--accent-color);
+        margin: 0 0 4px 0;
+    }
+
+    /* Single Line Adaptive Title */
+    .recent-card-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: clamp(15px, 4cqw, 22px);
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.2;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        letter-spacing: 0.2px;
+    }
+
+    .progress-label {
+        font-family: 'Manrope', sans-serif;
+        font-size: 12px;
+        color: var(--text-color);
         opacity: 0.6;
-        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
         margin-top: 4px;
     }
 
-    /* Subtle arrow animation next to editorial text */
-    .resume-label::after {
-        content: '';
-        width: 40px;
-        height: 1px;
-        background: currentColor;
-        transform: scaleX(0.4);
-        transform-origin: left;
-        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        opacity: 0.5;
+    /* Circular Outline Play Button */
+    .resume-play-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1.5px solid var(--accent-color);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-left: auto;
     }
 
-    .recent-read-card:hover .resume-label { 
-        opacity: 1; 
-        letter-spacing: 6px;
+    .resume-play-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--accent-color);
+        margin-left: 3px; /* Optically center the play triangle */
+        transition: all 0.4s ease;
     }
-    
-    .recent-read-card:hover .resume-label::after {
-        transform: scaleX(1);
-        opacity: 1;
+
+    .recent-read-card:hover .resume-play-btn {
+        background: rgba(200, 169, 126, 0.1);
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(200, 169, 126, 0.2);
     }
 
     @media (max-width: 768px) {
         #recent-read-section { margin-bottom: 32px; padding: 0 16px; }
-        .recent-read-card { padding: 20px 28px; gap: 24px; border-radius: 28px; }
-        .recent-cover-img { width: 68px; height: 102px; }
-        .recent-card-title { font-size: 22px; }
-        .resume-label { font-size: 8px; letter-spacing: 3px; }
-        .resume-label::after { width: 25px; }
+        .recent-read-card { padding: 12px 16px; gap: 12px; border-radius: 16px; }
+        .recent-cover-img { width: 48px; height: 72px; }
+        .resume-label { font-size: 9px; letter-spacing: 1px; }
+        .recent-card-title { font-size: clamp(14px, 5cqw, 18px); }
+        .progress-label { font-size: 11px; }
+        .resume-play-btn { width: 44px; height: 44px; border-width: 1px; }
+        .resume-play-btn svg { width: 16px; height: 16px; margin-left: 2px; }
     }
 
     .category-tags { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 0 auto 40px; max-width: 900px; }
@@ -560,20 +558,16 @@
 
     <!-- DEDICATED CONTINUE READING SECTION -->
     <div id="recent-read-section">
-      <div class="recent-section-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        Jump Back In
-      </div>
-      
       <div id="recent-read-card" class="recent-read-card" title="Resume reading">
         <img src="" id="recent-cover" class="recent-cover-img" alt="Recent Book Cover">
         <div class="recent-card-info">
+            <span class="resume-label">CONTINUE READING</span>
             <h3 id="recent-title" class="recent-card-title">...</h3>
-            <span class="resume-label">Resume Reading</span>
+            <span class="progress-label">Progress &bull; 42%</span>
         </div>
+        <button class="resume-play-btn" aria-label="Resume Reading">
+            <svg viewBox="0 0 20 20"><path d="M6 4L15 10L6 16V4Z" /></svg>
+        </button>
       </div>
     </div>
 
@@ -629,7 +623,7 @@
     window.location.replace('/login.html');
   }
 })();
-       document.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector('.container'), bookGrid = document.getElementById('book-grid');
         const loadMoreBtn = document.getElementById('load-more-btn'), backToTopBtn = document.getElementById('back-to-top');
         const searchInput = document.getElementById('search-trigger'), searchDropdown = document.getElementById('search-dropdown');
@@ -653,15 +647,38 @@
             const card = document.getElementById('recent-read-card');
             const cover = document.getElementById('recent-cover');
             const title = document.getElementById('recent-title');
-
-            if (!section || !card || !cover || !title) return;
+            const progressEl = document.querySelector('.progress-label');
+          
+           if (!section || !card || !cover || !title || !progressEl) return;
 
             cover.src = book.Cover_url;
             title.textContent = book.Title;
+          const progress = localStorage.getItem(`liberatica-progress-${book.id}`);
+
+if (progress === null) {
+    // no reading yet
+    progressEl.textContent = 'Start Reading';
+} else {
+    const percent = Math.floor(progress * 100);
+
+    if (isNaN(percent)) {
+        // system not ready / rare case
+        progressEl.textContent = 'Calculating...';
+    } 
+    else if (percent <= 5) {
+        progressEl.textContent = 'Just Started';
+    } 
+    else if (percent >= 95) {
+        progressEl.textContent = 'Finished';
+    } 
+    else {
+        progressEl.textContent = `Progress • ${percent}%`;
+    }
+}
             section.style.display = 'block';
             
             card.onclick = () => {
-                window.location.href = `/reader.html?book=${encodeURIComponent(book.pdf_url)}&title=${encodeURIComponent(book.Title)}`;
+                window.location.href = `/reader.html?id=${book.id}&book=${encodeURIComponent(book.pdf_url)}&title=${encodeURIComponent(book.Title)}`;
             };
         }
 
