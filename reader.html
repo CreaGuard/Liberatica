@@ -411,8 +411,8 @@
     }
 
     // ===== URL PARAMS =====
-    const params = new URLSearchParams(window.location.search);
-    const bookUrlRaw = params.get("book");
+  const urlParams = new URLSearchParams(window.location.search);
+const bookId = urlParams.get("id");
 
     // Backward compatibility for basic filename inputs
     let bookUrl = bookUrlRaw;
@@ -1260,17 +1260,23 @@
 
         // --- RESTORED RELOCATED TRACKING ---
         rendition.on("relocated", (loc) => {
-  localStorage.setItem(`liberatica-pos-${bookName}`, loc.start.cfi);
+ // save reading position
+localStorage.setItem(`liberatica-pos-${bookId}`, loc.start.cfi);
 
-  // 🔥 ADD THIS
-  if (book.locations && book.locations.length() > 0) {
+if (book.locations && book.locations.length() > 0) {
     const progress = book.locations.percentageFromCfi(loc.start.cfi);
 
-    localStorage.setItem('liberatica-progress', progress);
+    // 🔥 important safety check
+    if (!isNaN(progress)) {
+    const last = localStorage.getItem(`liberatica-progress-${bookId}`);
 
-    // also sync last read (important)
-    localStorage.setItem('liberatica_recent_v3', bookId);
-  }
+    // only save if progress actually changed
+    if (last === null || Math.abs(progress - last) > 0.01) {
+        localStorage.setItem(`liberatica-progress-${bookId}`, progress);
+        localStorage.setItem('liberatica_recent_v3', bookId);
+    }
+}
+}
 });
           const tocLinks = document.querySelectorAll('#toc-list a');
           const currentHref = loc.start.href;
