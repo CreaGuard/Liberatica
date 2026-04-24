@@ -39,14 +39,7 @@
     }
   }
   </script>
-   
-  // AUTH GUARD — must be logged in to see this page
-(function() {
-  if (localStorage.getItem('liberatica_access') !== 'granted') {
-    window.location.replace('/login.html');
-  }
-})();
-
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Great+Vibes&family=Inter:wght@400;500&family=Manrope:wght@400;500;700;800&display=swap">
@@ -629,7 +622,7 @@
   <div class="container" style="display: none;">
     <div class="header">
       <h1>LIBERATICA</h1>
-      <h2 class="site-subtitle">Free Digital Library of Philosophy, Filmmaking, Design & Business</h2>
+      <h2 class="site-subtitle">“A THOUSAND LIVES IN ONE”</h2>
     </div>
 
     <div id="featured-book"></div>
@@ -712,6 +705,12 @@
   </div>
 
   <script>
+     // AUTH GUARD — must be logged in to see this page
+(function() {
+  if (localStorage.getItem('liberatica_access') !== 'granted') {
+    window.location.replace('/login.html');
+  }
+})();
             document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector('.container'), bookGrid = document.getElementById('book-grid');
         const loadMoreBtn = document.getElementById('load-more-btn'), backToTopBtn = document.getElementById('back-to-top');
