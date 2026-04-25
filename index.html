@@ -195,7 +195,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-width: 0; /* allows flex items to shrink below minimum content size for ellipsis */
+        min-width: 0; /* allows flex items to shrink below minimum content size */
         container-type: inline-size;
     }
 
@@ -234,17 +234,17 @@
         opacity: 0.8;
     }
 
-    /* Single Line Adaptive Title */
+    /* Single Line Adaptive Title - Smart Scaling Ready */
     .recent-card-title {
         font-family: 'Manrope', sans-serif;
-        font-size: clamp(15px, 4cqw, 22px);
+        font-size: 22px;
         font-weight: 600;
         color: var(--text-color);
         line-height: 1.2;
         margin: 0;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+        /* text-overflow: ellipsis; Removed to let JS handle scale without dots */
         width: 100%;
         letter-spacing: 0.2px;
     }
@@ -343,7 +343,7 @@
         .resume-label::before, .resume-label::after { width: 16px; }
         .recent-read-card:hover .resume-label::before,
         .recent-read-card:hover .resume-label::after { width: 24px; }
-        .recent-card-title { font-size: clamp(14px, 5cqw, 18px); }
+        .recent-card-title { font-size: 18px; }
         .immersion-text { font-size: 9px; letter-spacing: 1px; }
         .resume-play-btn { width: 44px; height: 44px; border-width: 1px; }
         .resume-play-btn svg { width: 16px; height: 16px; margin-left: 2px; }
@@ -359,6 +359,7 @@
     .book-card.is-visible { opacity: 1; transform: translateY(0); }
     .book-card:hover { transform: translateY(-12px); box-shadow: 0 20px 40px var(--shadow-color); border-color: var(--accent-color); }
     .book-card::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); transition: left 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; z-index: 10; }
+    body.dark-mode .book-card::after { background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%); }
     .book-card:hover::after { left: 150%; }
     .book-card img { height: 320px; object-fit: contain; width: 100%; background-color: transparent; padding-top: 16px; transition: transform 0.5s ease; }
     
@@ -407,7 +408,10 @@
     .palette-detail-top { display: flex; align-items: flex-start; gap: 32px; width: 100%; }
     .palette-detail-cover { width: 160px; flex-shrink: 0; border-radius: 12px; box-shadow: 0 12px 30px var(--shadow-color); }
     .palette-detail-info { text-align: left; position: relative; width: 100%; flex: 1; }
-    .palette-detail-info h2 { font-family: 'DM Serif Display', serif; margin: 0; font-size: 32px; line-height: 1.2; }
+    
+    /* Title constraints updated for smart scaling */
+    .palette-detail-info h2 { font-family: 'DM Serif Display', serif; margin: 0; font-size: 32px; line-height: 1.2; white-space: nowrap; overflow: hidden; }
+    
     .palette-detail-info p { color: var(--text-color); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.6; margin: 8px 0 24px; }
     
     .palette-detail-info .buttons { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 12px; width: 100%; }
@@ -529,8 +533,11 @@
         .palette-detail-view { padding: 16px 20px 12px 20px; }
         .palette-detail-top { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
         .palette-detail-cover { width: 120px; }
+        
+        /* Updated for Smart Scaling */
         .palette-detail-info { text-align: center; width: 100%; min-width: 0; }
-        .palette-detail-info h2 { font-size: clamp(16px, 6vw, 24px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .palette-detail-info h2 { font-size: 24px; white-space: nowrap; width: 100%; margin: 0; padding: 0; }
+        
         .palette-detail-info p { margin: 6px 0 16px; font-size: 13px; }
         .palette-teaser-container { font-size: 14px; padding: 12px 16px; max-height: 120px; margin-top: 12px; }
         .related-books { margin-top: 16px; padding-top: 16px; }
@@ -577,7 +584,7 @@
 
   <div class="container" style="display: none;">
     <div class="header">
-      <h1>LIBERATICA</h1>
+      <h1 id="logo-header">LIBERATICA</h1>
       <h2 class="site-subtitle">“A THOUSAND LIVES IN ONE”</h2>
     </div>
 
@@ -663,13 +670,14 @@
 
   <script>
     
-     // AUTH GUARD — must be logged in to see this page
+    // AUTH GUARD — must be logged in to see this page
 (function() {
   if (localStorage.getItem('liberatica_access') !== 'granted') {
     window.location.replace('/login.html');
   }
 })();
-            document.addEventListener('DOMContentLoaded', () => {
+
+    document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector('.container'), bookGrid = document.getElementById('book-grid');
         const loadMoreBtn = document.getElementById('load-more-btn');
         const searchInput = document.getElementById('search-trigger'), searchDropdown = document.getElementById('search-dropdown');
@@ -737,7 +745,20 @@
             title.textContent = book.Title;
             section.style.display = 'block';
             
+            // --- SMART SINGLE-LINE TITLE SCALING ALGORITHM FOR RECENT READ ---
+            requestAnimationFrame(() => {
+                let currentFontSize = window.innerWidth <= 768 ? 18 : 22;
+                title.style.fontSize = currentFontSize + 'px';
+                
+                // Keep shrinking the font size by 0.5px until the entire text fits flawlessly inside its bounded width
+                while (title.scrollWidth > title.clientWidth && currentFontSize > 10) {
+                    currentFontSize -= 0.5;
+                    title.style.fontSize = currentFontSize + 'px';
+                }
+            });
+            
             card.onclick = () => {
+                saveRecentRead(book.id);
                 window.location.href = `/reader.html?book=${encodeURIComponent(book.pdf_url)}&title=${encodeURIComponent(book.Title)}`;
             };
         }
@@ -948,7 +969,9 @@
             paletteDetailView.innerHTML = `
                 <div class="palette-detail-top">
                     <img src="${b.Cover_url}" class="palette-detail-cover">
-                    <div class="palette-detail-info"><h2>${b.Title}</h2><p>by ${b.Author}</p>
+                    <div class="palette-detail-info">
+                        <h2 id="smart-title">${b.Title}</h2>
+                        <p>by ${b.Author}</p>
                         <div class="actions-wrapper">
                             <div class="buttons">
                                 <a href="/reader.html?book=${encodeURIComponent(b.pdf_url)}&title=${encodeURIComponent(b.Title)}" onclick="saveRecentRead(${b.id})" class="read" aria-label="Read Online" title="Read Online">Read</a>
@@ -969,6 +992,21 @@
                 </div>
                 <div class="palette-teaser-container" style="display:none; width: 100%; box-sizing: border-box;"></div>
                 <div class="related-books" id="related-books-container" style="width: 100%; box-sizing: border-box;"></div>`;
+
+            // --- SMART SINGLE-LINE TITLE SCALING ALGORITHM ---
+            const titleEl = paletteDetailView.querySelector('#smart-title');
+            const containerEl = paletteDetailView.querySelector('.palette-detail-info');
+            if (titleEl && containerEl) {
+                let currentFontSize = window.innerWidth <= 768 ? 24 : 32;
+                titleEl.style.fontSize = currentFontSize + 'px';
+                
+                // Keep shrinking the font size by 0.5px until the entire text fits flawlessly inside the container
+                while (titleEl.scrollWidth > containerEl.clientWidth && currentFontSize > 11) {
+                    currentFontSize -= 0.5;
+                    titleEl.style.fontSize = currentFontSize + 'px';
+                }
+            }
+
             const popup = paletteDetailView.querySelector('.share-popup');
             paletteDetailView.querySelector('.share-btn-main').onclick = e => { e.stopPropagation(); navigator.share ? navigator.share({title: sTxt, url: sUrl}).catch(()=>{}) : popup.classList.toggle('visible'); };
             popup.onclick = e => {
