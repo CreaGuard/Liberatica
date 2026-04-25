@@ -592,9 +592,13 @@
             "height": "auto !important",
             "text-align": "center !important"
           },
-          "a": { 
+          "a[href]": { 
             "color": "#5E4028 !important", 
             "text-decoration": "underline !important" 
+          },
+          "a:not([href])": {
+            "color": "inherit !important",
+            "text-decoration": "none !important"
           },
           ".epubjs-hl": { 
             "background-color": "rgba(212, 175, 55, 0.35) !important", 
@@ -625,7 +629,7 @@
 
         rendition.themes.register("sepia", {
           "html, body": { "background": "#F4ECD8 !important", "color": "#3A3028 !important" },
-          "a": { "color": "#5E4028 !important" }
+          "a[href]": { "color": "#5E4028 !important" }
         });
         rendition.themes.select("sepia");
         let fontSize = 100;
