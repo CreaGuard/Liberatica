@@ -5,8 +5,10 @@
   <title>Liberatica Reader</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
+  <!-- Using highly reliable CDNs to prevent "Unexpected token '<'" errors -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+  
   <style>
     :root {
       /* Permanent Sepia Theme */
@@ -99,7 +101,7 @@
     #toc-toggle svg { width: 16px; height: 16px; }
 
     #tts-toggle {
-        background: #D4AF37; /* Golden tactile button */
+        background: #D4AF37;
         color: #3A3028;
         border: none;
         padding: 6px 16px;
@@ -299,9 +301,14 @@
       width: 100%; 
       height: 100%; 
       overflow-y: auto; 
-      overflow-anchor: none; 
+      overflow-anchor: auto; 
       -webkit-overflow-scrolling: touch;
       transition: opacity 0.2s ease-in-out; /* Smooth fade in/out for Kindle-style navigation */
+    }
+
+    /* Force ePub.js iframes to strictly respect screen boundaries */
+    .epub-view > iframe {
+        max-width: 100% !important;
     }
 
     /* Progress Container - Solid Redesign */
@@ -412,7 +419,7 @@
 
     // ===== URL PARAMS =====
     const params = new URLSearchParams(window.location.search);
-    const bookUrlRaw = params.get("book");
+    const bookUrlRaw = params.get("book") || "https://res.cloudinary.com/dvxc3whjv/raw/upload/v1777134437/The_Country_of_the_Blind_oqt8ey.epub";
 
     // Backward compatibility for basic filename inputs
     let bookUrl = bookUrlRaw;
@@ -532,6 +539,9 @@
         }
     }
 
+    // Global navigation lock to prevent race conditions during rapid taps
+    let isNavigating = false;
+
     // ===== EPUB LOADER (EXISTING CORE) =====
     async function loadEPUB(epubUrl) {
       const selectionMenu = document.getElementById("selection-menu");
@@ -546,6 +556,8 @@
       
       try {
         const response = await fetch(epubUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         const bookData = await response.arrayBuffer();
         const book = ePub(bookData);
         
@@ -567,24 +579,17 @@
             "margin-bottom": "0.8em !important", 
             "text-align": "justify !important"
           },
-          "h1, h2, h3, h4, h5, h6, .chapter-title, .title, .heading, [class*='title'], [class*='heading'], [id*='title'], [id*='heading'], .ct, .ch": {
+          "h1, h2, h3, h4, h5, h6, .chapter-title, .title, .heading, .ct, .ch": {
             "text-align": "center !important", 
-            "display": "flex !important",
-            "flex-direction": "column !important",
-            "align-items": "center !important",
-            "justify-content": "center !important",
+            "display": "block !important",
             "width": "100% !important",
-            "margin-left": "0 !important",
-            "margin-right": "0 !important",
-            "padding-left": "0 !important",
-            "padding-right": "0 !important",
             "margin-top": "1.5em !important", 
             "margin-bottom": "1em !important",
             "line-height": "1.3 !important",
             "font-weight": "800 !important",
             "text-indent": "0 !important"
           },
-          "img, svg, figure, [class*='image'], [class*='figure']": {
+          "img, svg, figure": {
             "display": "block !important",
             "margin-left": "auto !important",
             "margin-right": "auto !important",
@@ -625,6 +630,32 @@
                 `;
                 doc.head.appendChild(style);
             }
+
+            // --- EPUB.JS CONTINUOUS SCROLL ACCURACY FIX ---
+            if (contents.window && contents.window.ResizeObserver) {
+                const ro = new contents.window.ResizeObserver(() => {
+                    if (typeof contents.expand === 'function') {
+                        contents.expand();
+                    }
+                });
+                ro.observe(doc.body);
+            }
+
+            // Intercept internal links to route through smartNavigate
+            doc.body.addEventListener('click', (e) => {
+                const a = e.target.closest('a[href]');
+                if (a) {
+                    let href = a.getAttribute('href');
+                    if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('mailto:')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (href.startsWith('#') && contents.section && contents.section.href) {
+                            href = contents.section.href.split('#')[0] + href;
+                        }
+                        smartNavigate(href);
+                    }
+                }
+            }, true);
         });
 
         rendition.themes.register("sepia", {
@@ -635,6 +666,14 @@
         let fontSize = 100;
 
         await rendition.display();
+
+        // --- GLOBAL RESIZE FIX ---
+        window.addEventListener("resize", () => {
+            try {
+                rendition.resize();
+            } catch(e) {}
+        });
+
         const msgElem = document.getElementById("message");
         if (msgElem) msgElem.style.display = "none";
 
@@ -757,7 +796,6 @@
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // Phrase highlight (FALLBACK) - Does NOT attempt auto-scrolling
             const doPhraseHighlight = () => {
                 const charIndex = ttsAbsoluteStartOffset + ttsCumulativeLength;
                 let startTrim = 0;
@@ -771,7 +809,6 @@
                 }
             };
 
-            // Only attempt precise word-tracking + auto-scroll if the voice supports it 
             if (!isMobile && 'onboundary' in utterance) {
                 let boundaryFired = false;
 
@@ -787,23 +824,10 @@
                         
                         if (targetRange && currentDoc) {
                             applyTTSHighlight(currentDoc, targetRange);
-                            
-                            // Precise auto-scroll is safe here because we are tracking single words
-                            requestAnimationFrame(() => {
-                                try {
-                                    const el = targetRange.startContainer.nodeType === Node.TEXT_NODE 
-                                        ? targetRange.startContainer.parentElement 
-                                        : targetRange.startContainer;
-                                    if (el && !isMobile) {
-                                        el.scrollIntoView({ behavior: "smooth", block: "center" });
-                                    }
-                                } catch (e) {}
-                            });
                         }
                     }
                 };
 
-                // Fallback for tricky desktop voices that claim to support boundaries but don't (e.g. UK Male)
                 setTimeout(() => {
                     if (!boundaryFired && ttsActive) {
                         doPhraseHighlight();
@@ -911,46 +935,17 @@
                 }
             }
             
-            let startNode = null;
-            let activeContents = null;
-
+            // Just read the first text node visible in the current page
             for (let contents of contentsList) {
                 const doc = contents.document;
                 buildTextMap(doc);
 
-                let iframeOffsetTop = 0;
-                if (contents.window && contents.window.frameElement) {
-                    iframeOffsetTop = contents.window.frameElement.getBoundingClientRect().top;
-                } else {
-                    const frames = document.querySelectorAll('iframe');
-                    for(let f of frames) {
-                        try {
-                            if(f.contentDocument === doc) { iframeOffsetTop = f.getBoundingClientRect().top; break; }
-                        } catch(e){}
-                    }
-                }
-
-                const viewerElem = document.getElementById('viewer');
-                const viewerRect = viewerElem ? viewerElem.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
-
                 for (let node of allTextNodes) {
-                    const range = doc.createRange();
-                    range.selectNodeContents(node);
-                    const rect = range.getBoundingClientRect();
-                    
-                    const absoluteTop = iframeOffsetTop + rect.top;
-                    
-                    if (absoluteTop >= viewerRect.top + 20 && absoluteTop <= viewerRect.bottom && node.textContent.trim().length > 0) {
-                        startNode = node;
-                        activeContents = contents;
-                        break;
+                    if (node.textContent.trim().length > 0) {
+                        startTTSFromNode(contents, node, 0);
+                        return;
                     }
                 }
-                if (startNode) break; 
-            }
-
-            if (startNode && activeContents) {
-                startTTSFromNode(activeContents, startNode, 0);
             }
         };
 
@@ -972,7 +967,16 @@
 
         // --- Restored Highlighting (Manual) ---
         const highlightsKey = `liberatica-highlights-${bookName}`;
-        let storedHighlights = JSON.parse(localStorage.getItem(highlightsKey) || "[]");
+        
+        // Safely parse localStorage to prevent JSON errors from corrupt data
+        let storedHighlights = [];
+        try {
+            storedHighlights = JSON.parse(localStorage.getItem(highlightsKey) || "[]");
+        } catch(e) {
+            console.warn("Cleared corrupted highlights");
+            localStorage.setItem(highlightsKey, "[]");
+        }
+        
         let highlightToDelete = null;
 
         const showConfirm = (cfi) => { 
@@ -1186,7 +1190,10 @@
         document.getElementById("fontDown")?.addEventListener('click', () => scale(-10));
 
         // --- NAVIGATION ---
-        const smartNavigate = async (targetCfi) => {
+        const smartNavigate = async (targetCfiOrHref) => {
+          if (isNavigating) return;
+          isNavigating = true;
+
           stopTTS();
           const sidebar = document.getElementById('toc-sidebar');
           const overlay = document.getElementById('sidebar-overlay');
@@ -1200,39 +1207,62 @@
               viewer.style.opacity = "0"; // BLANK THE PAGE (Kindle Style Transition)
           }
 
+          // FAILSAFE: Ensure the screen ALWAYS returns even if the link is totally broken
+          const safetyTimer = setTimeout(() => {
+              if (viewer) {
+                  viewer.style.scrollBehavior = "smooth";
+                  viewer.style.opacity = "1";
+              }
+              isNavigating = false;
+          }, 1500);
+
           /* OUT OF THE BOX SOLLUTION: The "Automated Four-Tap" Engine
            * Mobile browsers delay layout reflows in iframes. Tapping forces the DOM 
            * to accurately calculate dimensions. The page goes blank during this to hide the layout glitch.
            */
           try {
-              // TAP 1: Inject the chapter iframe into the DOM
-              await rendition.display(targetCfi);
+              // 1. Extract the base chapter path (without the #fragment anchor)
+              // This forces epub.js to load the raw file first, bypassing its broken anchor math
+              let baseTarget = targetCfiOrHref;
+              if (typeof targetCfiOrHref === 'string' && targetCfiOrHref.includes('#') && !targetCfiOrHref.startsWith("epubcfi")) {
+                  baseTarget = targetCfiOrHref.split('#')[0];
+                  // If link was purely a hash (e.g. "#footnote"), use original target
+                  if (!baseTarget) baseTarget = targetCfiOrHref;
+              }
+
+              // Helper for clean, overlapping-safe delays
+              const delay = ms => new Promise(res => setTimeout(res, ms));
+
+              // TAP 1: Inject the chapter iframe into the DOM safely letting epub.js resolve the path natively
+              await rendition.display(baseTarget);
               
-              // TAP 2: Wait 100ms for CSS to apply
-              setTimeout(async () => {
-                  await rendition.display(targetCfi);
+              // TAP 2: Wait 100ms for CSS to apply, then align to actual target (with anchor)
+              await delay(100);
+              await rendition.display(targetCfiOrHref);
                   
-                  // TAP 3: Wait 120ms for fonts to expand
-                  setTimeout(() => {
-                      rendition.display(targetCfi);
+              // TAP 3: Wait 120ms for fonts to expand, then align
+              await delay(120);
+              await rendition.display(targetCfiOrHref);
                       
-                      // TAP 4: Wait 100ms, make the final perfect snap, and fade the view back in
-                      setTimeout(() => {
-                          rendition.display(targetCfi);
+              // TAP 4: Wait 100ms, make the final perfect snap
+              await delay(100);
+              await rendition.display(targetCfiOrHref);
                           
-                          if (viewer) {
-                              viewer.style.scrollBehavior = "smooth";
-                              viewer.style.opacity = "1"; // FADE IN 
-                          }
-                      }, 100);
-                  }, 120);
-              }, 100);
+              clearTimeout(safetyTimer);
+              if (viewer) {
+                  viewer.style.scrollBehavior = "smooth";
+                  viewer.style.opacity = "1"; // FADE IN 
+              }
+              setTimeout(() => isNavigating = false, 100);
+
           } catch (e) {
               console.warn("Navigation Error:", e);
+              clearTimeout(safetyTimer);
               if (viewer) {
                   viewer.style.scrollBehavior = "smooth";
                   viewer.style.opacity = "1";
               }
+              isNavigating = false;
           }
         };
 
@@ -1250,6 +1280,11 @@
             if (c.subitems) build(c.subitems, el);
           });
           if (list) build(toc, list);
+        });
+
+        // Catch internal links inside the EPUB content and route through our custom smartNavigate
+        rendition.on("linkClicked", (href) => {
+            smartNavigate(href);
         });
 
         document.getElementById('toc-toggle')?.addEventListener('click', () => {
@@ -1290,10 +1325,7 @@
 
         const saved = localStorage.getItem(`liberatica-pos-${bookName}`);
         if (saved) {
-            // Use smart navigate for the initial load if possible, to avoid jumps
-            smartNavigate(saved).catch(() => {
-                rendition.display(saved).then(() => setTimeout(() => rendition.display(saved), 300));
-            });
+            smartNavigate(saved);
         }
         setTimeout(() => book.locations.generate(1600), 2000);
 
