@@ -790,28 +790,96 @@
         };
 
         const performSmartSearch = (rawTerm) => {
-            const term = normalizeStr(rawTerm);
-            if (!term) return [];
-            
-            const searchWords = term.split(' ');
-            
-            return allBooks.filter(book => {
-                const targetText = normalizeStr(book.Title + ' ' + book.Author);
-                if (targetText.includes(term)) return true; // Direct fast match
-                
-                const targetWords = targetText.split(' ');
-                
-                // Every word in the search must match at least one word in the target
-                return searchWords.every(sw => {
-                    if (targetText.includes(sw)) return true;
-                    if (sw.length <= 3) return false; // Prevent false positives on short words
-                    
-                    return targetWords.some(tw => {
-                        if (Math.abs(tw.length - sw.length) > 2) return false;
-                        const dist = getEditDistance(sw, tw);
-                        const maxTypos = sw.length > 5 ? 2 : 1;
-                        return dist <= maxTypos;
-                    });
+    const term = normalizeStr(rawTerm);
+
+    if (!term) return [];
+
+    const searchWords = term.split(' ');
+
+    const results = allBooks.map(book => {
+
+        const title = normalizeStr(book.Title || '');
+        const author = normalizeStr(book.Author || '');
+
+        let score = 0;
+
+        // EXACT TITLE
+        if (title === term)
+            score += 2000;
+
+        // TITLE STARTS WITH SEARCH
+        else if (title.startsWith(term))
+            score += 1000;
+
+        // TITLE CONTAINS SEARCH
+        else if (title.includes(term))
+            score += 500;
+
+        // AUTHOR EXACT
+        if (author === term)
+            score += 1200;
+
+        // AUTHOR CONTAINS
+        else if (author.includes(term))
+            score += 700;
+
+        const words = (title + ' ' + author).split(' ');
+
+        let matchedWords = 0;
+
+        searchWords.forEach(sw => {
+
+            let found = false;
+
+            // Exact word
+            for (const tw of words) {
+
+                if (tw === sw) {
+                    score += 150;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                matchedWords++;
+                return;
+            }
+
+            // Skip fuzzy on short words
+            if (sw.length <= 3)
+                return;
+
+            for (const tw of words) {
+
+                if (Math.abs(tw.length - sw.length) > 1)
+                    continue;
+
+                const dist = getEditDistance(sw, tw);
+
+                if (dist === 1) {
+                    score += 30;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+                matchedWords++;
+        });
+
+        if (matchedWords === 0 && score === 0)
+            return null;
+
+        return { book, score };
+    });
+
+    return results
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score)
+        .map(r => r.book);
+          
+                    };
                 });
             });
         };
