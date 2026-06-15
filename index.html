@@ -873,14 +873,11 @@
 
         return { book, score };
     });
-
-    return results
-        .filter(Boolean)
-        .sort((a, b) => b.score - a.score)
-        .map(r => r.book);
-          
-           
-        };
+return results
+            .filter(Boolean)
+            .sort((a, b) => b.score - a.score)
+            .map(r => r.book);
+    };
 
         // --- STRICT SMART RECOMMENDATION ALGORITHM ---
         const getTags = (book) => {
